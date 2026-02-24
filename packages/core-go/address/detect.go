@@ -1,12 +1,19 @@
 package address
 
-import (
-	"github.com/stellar/go/strkey"
-)
-
 func Detect(address string) string {
-	if strkey.IsValidEd25519PublicKey(address) { return "G" }
-	if strkey.IsValidMed25519PublicKey(address) { return "M" }
-	if strkey.IsValidContract(address) { return "C" }
-	return "invalid"
+	versionByte, _, err := DecodeStrKey(address)
+	if err != nil {
+		return "invalid"
+	}
+
+	switch versionByte {
+	case VersionByteG:
+		return "G"
+	case VersionByteM:
+		return "M"
+	case VersionByteC:
+		return "C"
+	default:
+		return "invalid"
+	}
 }
