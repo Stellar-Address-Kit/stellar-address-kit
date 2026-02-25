@@ -2,28 +2,36 @@ package routing
 
 import (
 	"regexp"
+	"strconv"
 
 	"github.com/stellar-address-kit/core-go/address"
-	"github.com/stellar-address-kit/core-go/muxed"
 )
 
 var digitsOnlyRegex = regexp.MustCompile(`^\d+$`)
 
 func ExtractRouting(input RoutingInput) RoutingResult {
-	parsed := address.Parse(input.Destination)
+	parsed, err := address.Parse(input.Destination)
+	if err != nil {
+		addrErr, ok := err.(*address.AddressError)
+		if !ok {
+			addrErr = &address.AddressError{
+				Code:    address.ErrUnknownPrefix,
+				Input:   input.Destination,
+				Message: err.Error(),
+			}
+		}
 
-	if parsed.Kind == "invalid" {
 		return RoutingResult{
 			RoutingSource: "none",
 			Warnings:      []address.Warning{},
 			DestinationError: &DestinationError{
-				Code:    parsed.Err.Code,
-				Message: parsed.Err.Message,
+				Code:    addrErr.Code,
+				Message: addrErr.Message,
 			},
 		}
 	}
 
-	if parsed.Kind == "C" {
+	if parsed.Kind == address.KindC {
 		return RoutingResult{
 			RoutingSource: "none",
 			Warnings: []address.Warning{{
@@ -37,9 +45,10 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 		}
 	}
 
-	if parsed.Kind == "M" {
-		baseG, id, _ := muxed.DecodeMuxed(parsed.Address)
-		warnings := append([]address.Warning{}, parsed.Warnings...)
+	if parsed.Kind == address.KindM {
+		baseG := parsed.BaseG
+		id := strconv.FormatUint(parsed.MuxedID, 10)
+		warnings := []address.Warning{}
 
 		if input.MemoType == "id" || (input.MemoType == "text" && input.MemoValue != "" && digitsOnlyRegex.MatchString(input.MemoValue)) {
 			warnings = append(warnings, address.Warning{
@@ -65,7 +74,7 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 
 	routingID := ""
 	routingSource := "none"
-	warnings := append([]address.Warning{}, parsed.Warnings...)
+	warnings := []address.Warning{}
 
 	if input.MemoType == "id" {
 		norm := NormalizeMemoTextID(input.MemoValue)
@@ -116,7 +125,7 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 	}
 
 	return RoutingResult{
-		DestinationBaseAccount: parsed.Address,
+		DestinationBaseAccount: parsed.Raw,
 		RoutingID:              routingID,
 		RoutingSource:          routingSource,
 		Warnings:               warnings,
