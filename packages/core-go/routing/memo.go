@@ -9,7 +9,10 @@ import (
 )
 
 var digitsOnly = regexp.MustCompile(`^\d+$`)
-var uint64Max = new(big.Int).SetString("18446744073709551615", 10)
+var uint64Max = func() *big.Int {
+	val, _ := new(big.Int).SetString("18446744073709551615", 10)
+	return val
+}()
 
 type NormalizeResult struct {
 	Normalized string

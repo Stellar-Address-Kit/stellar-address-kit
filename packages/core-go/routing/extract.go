@@ -41,7 +41,7 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 		baseG, id, _ := muxed.DecodeMuxed(parsed.Address)
 		warnings := append([]address.Warning{}, parsed.Warnings...)
 
-		if input.MemoType == "id" || (input.MemoType == "text" && digitsOnlyRegex.MatchString(input.MemoValue)) {
+		if input.MemoType == "id" || (input.MemoType == "text" && input.MemoValue != "" && digitsOnlyRegex.MatchString(input.MemoValue)) {
 			warnings = append(warnings, address.Warning{
 				Code:     address.WarnMemoPresentWithMuxed,
 				Severity: "warn",

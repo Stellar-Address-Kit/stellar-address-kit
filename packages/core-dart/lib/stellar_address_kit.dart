@@ -1,3 +1,6 @@
+library stellar_address_kit;
+
+export 'src/address/stellar_address.dart';
 export 'src/address/detect.dart';
 export 'src/address/validate.dart';
 export 'src/address/parse.dart';
