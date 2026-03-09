@@ -5,13 +5,11 @@ import (
 	"strings"
 )
 
-// Version bytes for different strkey types.
 const (
-	VersionByteG = 6 << 3  // G addresses (ed25519 public key)
-	VersionByteM = 12 << 3 // M addresses (muxed account)
-	VersionByteC = 2 << 3  // C addresses (contract)
+	VersionByteG = 6 << 3
+	VersionByteM = 12 << 3
+	VersionByteC = 2 << 3
 
-	// Aliases for clarity in other packages.
 	VersionByteAccountID    = VersionByteG
 	VersionByteMuxedAccount = VersionByteM
 	VersionByteContract     = VersionByteC
@@ -53,7 +51,6 @@ var crc16Table = [256]uint16{
 	0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 }
 
-// calculateCRC16XModem calculates CRC-16 XMODEM checksum.
 func calculateCRC16XModem(data []byte) uint16 {
 	crc := uint16(0)
 	for _, b := range data {

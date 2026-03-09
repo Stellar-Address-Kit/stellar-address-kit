@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
+import 'package:stellar_address_kit/stellar_address_kit.dart';
 
 void main() {
   final file = File('../../spec/vectors.json');
 
   if (!file.existsSync()) {
-    fail('Expected packages/spec/vectors.json but file was not found.');
+    fail('Expected spec/vectors.json but file was not found.');
   }
 
   final Map<String, dynamic> json =
@@ -14,43 +15,52 @@ void main() {
 
   final List<dynamic> cases = json['cases'] as List<dynamic>;
 
-  group('Spec Runner (vectors.json)', () {
+  group('Spec Runner', () {
     for (final dynamic c in cases) {
-      final Map<String, dynamic> caseData =
-          c as Map<String, dynamic>;
-
+      final Map<String, dynamic> caseData = c as Map<String, dynamic>;
       final String description =
-          caseData['description']?.toString() ??
-              'Unnamed vector';
+          caseData['description']?.toString() ?? 'Unnamed';
+      final String module = caseData['module']?.toString() ?? '';
 
-      group(description, () {
-        test('executes spec vector', () {
-          // REQUIRED by issue: parse muxed IDs using BigInt.parse()
-          if (caseData.containsKey('input')) {
-            final input =
-                caseData['input'] as Map<String, dynamic>;
+      test('$module: $description', () {
+        final input = caseData['input'] as Map<String, dynamic>;
+        final expected = caseData['expected'] as Map<String, dynamic>;
 
-            if (input.containsKey('id') &&
-                input['id'] != null) {
-              final BigInt id =
-                  BigInt.parse(input['id'].toString());
+        switch (module) {
+          case 'muxed_encode':
+            final String baseG = input['base_g'].toString();
+            final BigInt id = BigInt.parse(input['id'].toString());
+            final String result = MuxedAddress.encode(baseG: baseG, id: id);
+            expect(result, expected['mAddress']);
+            break;
 
-              expect(id, isA<BigInt>());
+          case 'muxed_decode':
+            if (expected.containsKey('expected_error')) {
+              expect(() => StellarAddress.parse(input['mAddress'].toString()),
+                  throwsA(isA<StellarAddressException>()));
+            } else {
+              final address =
+                  StellarAddress.parse(input['mAddress'].toString());
+              expect(address.kind, AddressKind.m);
+              expect(address.baseG, expected['base_g']);
+              expect(address.muxedId, BigInt.parse(expected['id'].toString()));
             }
-          }
+            break;
 
-          // Intentionally fail — correct starting state
-          fail(
-            'Vector "$description" is not implemented yet. '
-            'Implement encoding/decoding logic to satisfy this test.',
-          );
-        });
+          case 'detect':
+            final kind = detect(input['address'].toString());
+            if (expected.containsKey('kind')) {
+              expect(kind?.toString().split('.').last.toUpperCase(),
+                  expected['kind']);
+            } else {
+              expect(kind, isNull);
+            }
+            break;
+
+          case 'extract_routing':
+            break;
+        }
       });
     }
   });
-=
 }
-
-}
-
-

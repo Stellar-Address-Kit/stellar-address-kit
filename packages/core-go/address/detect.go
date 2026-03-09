@@ -1,7 +1,5 @@
 package address
 
-// Detect inspects a Stellar address and returns its AddressKind.
-// If the address is invalid, an error is returned.
 func Detect(addr string) (AddressKind, error) {
 	versionByte, _, err := DecodeStrKey(addr)
 	if err != nil {

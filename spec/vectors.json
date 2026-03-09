@@ -162,19 +162,19 @@
       "module": "detect",
       "description": "lowercase G accepted with normalization warning",
       "input": {
-        "address": "ga7qynf7szfx4x7x5jfzz3uq6bxhdsy2rkvkzkx5ffqj1zmzx1"
+        "address": "gaycuyt553c5lhve2xpw5gmejt4bxgm7ahmjwlapzp53kjo7eiqadrsi"
       },
       "expected": {
         "kind": "G",
-        "address": "GA7QYNF7SZFX4X7X5JFZZ3UQ6BXHDSY2RKVKZKX5FFQJ1ZMZX1",
+        "address": "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
         "warnings": [
           {
             "code": "NON_CANONICAL_ADDRESS",
             "severity": "warn",
             "message": "lowercase address was normalized to uppercase",
             "normalization": {
-              "original": "ga7qynf7szfx4x7x5jfzz3uq6bxhdsy2rkvkzkx5ffqj1zmzx1",
-              "normalized": "GA7QYNF7SZFX4X7X5JFZZ3UQ6BXHDSY2RKVKZKX5FFQJ1ZMZX1"
+              "original": "gaycuyt553c5lhve2xpw5gmejt4bxgm7ahmjwlapzp53kjo7eiqadrsi",
+              "normalized": "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI"
             }
           }
         ]

@@ -6,7 +6,7 @@ import 'memo.dart';
 RoutingResult extractRouting(RoutingInput input) {
   final parsed = parse(input.destination);
 
-  if (parsed.kind == AddressKind.invalid) {
+  if (parsed.kind == null) {
     return RoutingResult(
       routingSource: 'none',
       warnings: [],

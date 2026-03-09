@@ -1,0 +1,70 @@
+﻿00:00 +0: loading test/spec_runner_test.dart
+00:00 +0: Spec Runner muxed_encode: encode id=0: minimum uint64 boundary; ensures zero-padding and no off-by-one in id encoding
+00:00 +1: Spec Runner muxed_encode: encode id=1: smallest positive id; exercises single-byte id encoding
+00:00 +2: Spec Runner muxed_encode: encode id=2^53: JavaScript Number safe-integer boundary; last id representable exactly as JS number
+00:00 +3: Spec Runner muxed_encode: encode id=2^53+1: above JS safe integer; requires string/BigInt to avoid silent corruption; interop canary
+00:00 +4: Spec Runner muxed_encode: encode id=2^64-1: maximum uint64; proves full range support and no truncation
+00:00 +5: Spec Runner muxed_decode: decode id=0 boundary case
+00:00 +5 -1: Spec Runner muxed_decode: decode id=0 boundary case [E]
+  Expected: 'GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 45:15  main.<fn>.<fn>
+  
+00:00 +5 -1: Spec Runner muxed_decode: decode id=1 small positive case
+00:00 +5 -2: Spec Runner muxed_decode: decode id=1 small positive case [E]
+  Expected: 'GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 45:15  main.<fn>.<fn>
+  
+00:00 +5 -2: Spec Runner muxed_decode: decode id=2^53 precision boundary
+00:00 +5 -3: Spec Runner muxed_decode: decode id=2^53 precision boundary [E]
+  Expected: 'GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 45:15  main.<fn>.<fn>
+  
+00:00 +5 -3: Spec Runner muxed_decode: decode id=2^53+1 interop canary
+00:00 +5 -4: Spec Runner muxed_decode: decode id=2^53+1 interop canary [E]
+  Expected: 'GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 45:15  main.<fn>.<fn>
+  
+00:00 +5 -4: Spec Runner muxed_decode: decode id=2^64-1 max uint64
+00:00 +5 -5: Spec Runner muxed_decode: decode id=2^64-1 max uint64 [E]
+  Expected: 'GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 45:15  main.<fn>.<fn>
+  
+00:00 +5 -5: Spec Runner muxed_decode: invalid M-address should return decode error
+00:00 +6 -5: Spec Runner detect: lowercase G accepted with normalization warning
+00:00 +6 -6: Spec Runner detect: lowercase G accepted with normalization warning [E]
+  Expected: 'G'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                   expect
+  test\spec_runner_test.dart 53:15  main.<fn>.<fn>
+  
+00:00 +6 -6: Spec Runner extract_routing: M-address routing (no memo)
+00:00 +7 -6: Spec Runner extract_routing: C-address rejection
+00:00 +8 -6: Spec Runner extract_routing: G-address + MEMO_ID routing
+00:00 +9 -6: Spec Runner extract_routing: G-address + MEMO_TEXT numeric routing
+00:00 +10 -6: Spec Runner extract_routing: Memo ID leading zeros normalization
+00:00 +11 -6: Some tests failed.
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.
