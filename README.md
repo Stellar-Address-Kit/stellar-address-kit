@@ -2,7 +2,7 @@
 
 **The deposit routing & address interop spec for Stellar (G/M/C + memos). Implemented across TypeScript, Go, and Dart.**
 
-Not an SDK replacement instead the application-layer routing logic the SDK does not provide; built on top of it, specified in [`spec/vectors.json`](./spec/vectors.json), and validated identically across all three language implementations.
+Not an SDK replacement but instead an application-layer routing logic the SDK(Stellar SDK) does not provide; built on top of it. It's specified in [`spec/vectors.json`](./spec/vectors.json), and validated identically across all three language implementations (Go, Dart, Typescript)
 
 ## 📂 Project Structure
 
@@ -30,15 +30,15 @@ stellar-address-kit/
 
 Stellar has three address types that coexist in real payment flows:
 
-| Prefix | Type             | Used For                                                                          |
-| ------ | ---------------- | --------------------------------------------------------------------------------- |
-| `G…`   | Classic account  | Standard payments                                                                 |
-| `M…`   | Muxed account    | Pooled accounts, exchange subaccounts — G address + embedded 64-bit ID            |
-| `C…`   | Contract address | Soroban smart contracts — **not a valid destination for classic payment routing** |
+| Prefix | Type             | Used For                                                                        |
+| ------ | ---------------- | ------------------------------------------------------------------------------- |
+| `G…`   | Classic account  | Standard payments                                                               |
+| `M…`   | Muxed account    | Pooled accounts, exchange subaccounts, G address + embedded 64-bit ID           |
+| `C…`   | Contract address | Soroban smart contracts **not a valid destination for classic payment routing** |
 
 Routing a deposit correctly requires knowing which type you received, whether to read the routing identifier from the muxed ID or the memo field, and what to do when both are present, or neither. Getting this wrong causes lost deposits.
 
-The Stellar SDK exposes the primitives. This library encodes the routing policy on top of them — the part that exchanges, wallets, and payment platforms implement differently, inconsistently, and sometimes incorrectly. See [Stellar's pooled account and muxed account guidance](https://developers.stellar.org/docs/build/guides/transactions/pooled-accounts-muxed-accounts-memos) for the underlying motivation.
+The Stellar SDK exposes the primitives. This library encodes the routing policy on top of them, which is the the part that exchanges, wallets and payment platforms implement differently, inconsistently and sometimes incorrectly. See [Stellar's pooled account and muxed account guidance](https://developers.stellar.org/docs/build/guides/transactions/pooled-accounts-muxed-accounts-memos) for the underlying motivation.
 
 ---
 
@@ -60,7 +60,7 @@ The Stellar SDK exposes the primitives. This library encodes the routing policy 
 | [`stellar_address_kit`](./packages/core-dart) | Dart / Flutter | pub.dev    | Wallet applications                                                                                             |
 | [`@stellar-address-kit/spec`](./spec)         | —              | npm        | Shared spec artifact (`vectors.json` + `schema.json`)                                                           |
 
-All three language implementations are validated against the same [`spec/vectors.json`](./spec/vectors.json). If a vector passes in TypeScript, it passes identically in Go and Dart. The spec lives at `spec/` in the repo root — it is the source of truth. The npm artifact re-exports from there.
+All three language implementations are validated against the same [`spec/vectors.json`](./spec/vectors.json). If a vector passes in TypeScript, it passes identically in Go and Dart. The spec lives at `spec/` in the repo root. it is the source of truth. The npm artifact re-exports from there.
 
 ---
 
@@ -90,36 +90,9 @@ dependencies:
 
 ---
 
-## Quick Start
-
 ### Detect and validate an address
 
 > **Choosing between `validate()` and `parse()`:** `validate()` is a lightweight boolean check. Use `parse()` when you need canonicalized output, warning details, or the normalized address string.
-
-```typescript
-import { detect, parse, validate } from "stellar-address-kit";
-
-detect("GA7QYNF7SZFX4X7X5JFZZJLZZ..."); // → 'G'
-detect("MA7QYNF7SZFX4X7X5JFZZJLZZ..."); // → 'M'
-detect("CA7QYNF7SZFX4X7X5JFZZJLZZ..."); // → 'C'
-detect("SABC..."); // → 'invalid'  (seed key rejected)
-detect("alice*stellar.org"); // → 'invalid'  (federation not supported)
-
-// Default mode: accepts lowercase, emits NON_CANONICAL_ADDRESS warning
-validate("ga7qynf7..."); // → true
-
-// Strict mode: rejects lowercase
-validate("ga7qynf7...", { strict: true }); // → false
-
-// parse() always returns a result — never throws
-const result = parse("ga7qynf7...");
-// result.kind        → 'G'
-// result.address     → 'GA7QYNF7...'  (always canonicalized to uppercase)
-// result.warnings[0] → {
-//   code: 'NON_CANONICAL_ADDRESS',
-//   normalization: { original: 'ga7qynf7...', normalized: 'GA7QYNF7...' }
-// }
-```
 
 ### Encode and decode muxed addresses
 
@@ -156,7 +129,7 @@ const result = parse("ga7qynf7...");
 Warnings are separated by ontology. `ErrorCode` means the input could not be parsed — carried in `destinationError`, never in `warnings[]`. `WarningCode` means the input parsed successfully but requires operational attention — carried in `warnings[]`, never in `destinationError`.
 
 ```typescript
-// Warning is a discriminated union — fields are stable per code.
+// Warning is a discriminated union, fields are stable per code.
 // No free-form maps. No optional keys that vary by implementation.
 type Warning =
   | {
@@ -220,13 +193,13 @@ type Warning =
 ## Common Integration Mistakes
 
 **Assuming valid StrKey means valid payment destination**
-A C address (`CA7...`) is a valid StrKey but is treated as `INVALID_DESTINATION` for classic payment routing by this library. `extractRouting` always returns `INVALID_DESTINATION` at `severity: 'error'` for C address destinations — unconditionally, regardless of sender.
+A C address (`CA7...`) is a valid StrKey but is treated as `INVALID_DESTINATION` for classic payment routing by this library. `extractRouting` always returns `INVALID_DESTINATION` at `severity: 'error'` for C address destinations, unconditionally, regardless of sender.
 
 **Using JavaScript `Number` for muxed IDs**
 Muxed IDs are uint64. `Number` silently loses precision above 2^53. The library uses `string` for all public `routingId` fields. Use `result.routingIdAsBigInt()` for arithmetic. The spec includes a 2^53+1 canary vector (`id: "9007199254740993"`) that fails any implementation using `Number` coercion internally.
 
 **Treating `MEMO_TEXT` as always routable**
-`MEMO_TEXT` is only routable if the value is a non-negative decimal integer in `[0, 2^64-1]` with no whitespace, sign, or decimal characters. Leading zeros are accepted and normalized — `"007"` routes as `"7"` with a `NON_CANONICAL_ROUTING_ID` warning. Non-numeric text like `"ref:ABC123"` returns `routingSource: 'none'` with `MEMO_TEXT_UNROUTABLE`.
+`MEMO_TEXT` is only routable if the value is a non-negative decimal integer in `[0, 2^64-1]` with no whitespace, sign, or decimal characters. Leading zeros are accepted and normalized `"007"` routes as `"7"` with a `NON_CANONICAL_ROUTING_ID` warning. Non-numeric text like `"ref:ABC123"` returns `routingSource: 'none'` with `MEMO_TEXT_UNROUTABLE`.
 
 **Treating all warnings as equivalent**
 `warnings[]` has three urgency levels. `info` is noise. `warn` should be logged. `error` should trigger an immediate alert and deposit rejection. Treating all warnings the same will either flood alerting or miss real deposit failures.
@@ -235,13 +208,13 @@ Muxed IDs are uint64. `Number` silently loses precision above 2^53. The library 
 `MEMO_ID` values are normalized using the same rules as numeric `MEMO_TEXT`. An empty, non-numeric, or out-of-uint64-range `MEMO_ID` returns `routingSource: 'none'` with `MEMO_ID_INVALID_FORMAT`. The presence of `memoType: 'id'` in a transaction does not guarantee a routable ID exists.
 
 **Passing non-standard `memoType` strings**
-`memoType` is `string` at the spec boundary. Anything not in `['none', 'id', 'text', 'hash', 'return']` — including `'MemoID'`, `'ID'`, `'memo_id'`, or an empty string — emits `UNSUPPORTED_MEMO_TYPE` with `routingSource: 'none'`. It never throws. If you want deterministic routing, map your transaction's memo type to a known value before calling `extractRouting`. If you don't, the library tells you it was unrecognized.
+`memoType` is `string` at the spec boundary. Anything not in `['none', 'id', 'text', 'hash', 'return']`, including `'MemoID'`, `'ID'`, `'memo_id'`, or an empty string — emits `UNSUPPORTED_MEMO_TYPE` with `routingSource: 'none'`. It never throws. If you want deterministic routing, map your transaction's memo type to a known value before calling `extractRouting`. If you don't, the library tells you it was unrecognized.
 
 ---
 
 ## The Spec
 
-Every behavior in this library is encoded in [`spec/vectors.json`](./spec/vectors.json) and validated against [`spec/schema.json`](./spec/schema.json). The schema enforces the discriminated union structure of warnings using JSON Schema `oneOf` with `additionalProperties: false` per variant — contributors cannot add undocumented fields, attach `normalization` to a warning code that doesn't carry it, or use the wrong severity value for a given code.
+Every behavior in this library is encoded in [`spec/vectors.json`](./spec/vectors.json) and validated against [`spec/schema.json`](./spec/schema.json). The schema enforces the discriminated union structure of warnings using JSON Schema `oneOf` with `additionalProperties: false` per variant, contributors cannot add undocumented fields, attach `normalization` to a warning code that doesn't carry it, or use the wrong severity value for a given code.
 
 **`spec_version` governs all three language packages simultaneously:**
 
@@ -276,13 +249,13 @@ import { vectors, schema } from "@stellar-address-kit/spec";
 
 ## Design Principles
 
-**Never throw on arbitrary input.** Every public function in all three languages is contractually non-throwing for any string input. Errors are values. `parse()` returns a result type. `parseOrThrow()` exists in Dart as a named opt-in for callers who prefer exception style — the spec guarantee covers only `parse()`.
+**Never throw on arbitrary input.** Every public function in all three languages is contractually non-throwing for any string input. Errors are values. `parse()` returns a result type. `parseOrThrow()` exists in Dart as a named opt-in for callers who prefer exception style, the spec guarantee covers only `parse()`.
 
-**Errors and warnings are different ontologies.** `ErrorCode` means unparseable. `WarningCode` means parseable but notable. They never appear in each other's fields. This is enforced at the type level in all three languages — not by convention.
+**Errors and warnings are different ontologies.** `ErrorCode` means unparseable. `WarningCode` means parseable but notable. They never appear in each other's fields. This is enforced at the type level in all three languages, not by convention.
 
 **Output is always canonical.** Returned `address` fields are always uppercase regardless of input casing. Returned `routingId` values are always canonical decimal strings without leading zeros (except `'0'`). Non-canonical input is accepted and flagged with a normalization payload showing exactly what changed.
 
-**The spec is the product.** `vectors.json` defines what the library does. Implementations exist to pass it. New behaviors are added to `vectors.json` first, then implemented — never the reverse.
+**The spec is the product.** `vectors.json` defines what the library does. Implementations exist to pass it. New behaviors are added to `vectors.json` first, then implemented, never the reverse.
 
 ---
 
@@ -339,16 +312,16 @@ node scripts/check-vectors-sync.js
 
 The following vectors are the non-negotiable baseline for any compliant implementation:
 
-| Vector                                                        | Why It Matters                                                               |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `id: "9007199254740993"` — 2^53+1 canary                      | Catches any `Number` coercion — runs on every commit for all three languages |
-| `id: "18446744073709551615"` — uint64 max                     | Confirms full range is handled                                               |
-| `id: "18446744073709551616"` — uint64 overflow                | Confirms overflow is rejected, not wrapped                                   |
-| Lowercase address input                                       | Confirms output `address` field is always uppercase                          |
-| `"NOTANADDRESS"` → `UNKNOWN_PREFIX`                           | Confirms prefix detection fires before checksum check                        |
-| Tampered G-length string → `INVALID_CHECKSUM`                 | Deterministic checksum failure independent of parser path                    |
-| C address as destination → `INVALID_DESTINATION` error        | Confirms valid StrKey ≠ valid payment destination                            |
-| `destinationError` present → all other fields null/none/empty | Confirms invariant is unconditional                                          |
+| Vector                                                        | Why It Matters                                                              |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `id: "9007199254740993"` — 2^53+1 canary                      | Catches any `Number` coercion, runs on every commit for all three languages |
+| `id: "18446744073709551615"` — uint64 max                     | Confirms full range is handled                                              |
+| `id: "18446744073709551616"` — uint64 overflow                | Confirms overflow is rejected, not wrapped                                  |
+| Lowercase address input                                       | Confirms output `address` field is always uppercase                         |
+| `"NOTANADDRESS"` → `UNKNOWN_PREFIX`                           | Confirms prefix detection fires before checksum check                       |
+| Tampered G-length string → `INVALID_CHECKSUM`                 | Deterministic checksum failure independent of parser path                   |
+| C address as destination → `INVALID_DESTINATION` error        | Confirms valid StrKey ≠ valid payment destination                           |
+| `destinationError` present → all other fields null/none/empty | Confirms invariant is unconditional                                         |
 
 ---
 
