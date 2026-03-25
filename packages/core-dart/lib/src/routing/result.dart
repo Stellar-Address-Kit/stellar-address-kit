@@ -1,5 +1,8 @@
 import '../address/codes.dart';
 
+enum RoutingSource { muxed, memo, none }
+
+
 class RoutingInput {
   final String destination;
   final String memoType;
@@ -59,3 +62,4 @@ class RoutingWarning {
   @override
   int get hashCode => code.hashCode;
 }
+
