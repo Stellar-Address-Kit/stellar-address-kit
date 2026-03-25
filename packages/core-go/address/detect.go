@@ -1,8 +1,10 @@
 package address
 
-import (
-	"github.com/stellar/go/strkey"
-)
+func Detect(addr string) (AddressKind, error) {
+	versionByte, _, err := DecodeStrKey(addr)
+	if err != nil {
+		return "", err
+	}
 
 func Detect(address string) string {
 	if strkey.IsValidEd25519PublicKey(address) {
@@ -16,3 +18,4 @@ func Detect(address string) string {
 	}
 	return "invalid"
 }
+

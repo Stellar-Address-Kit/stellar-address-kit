@@ -1,5 +1,8 @@
 import '../address/codes.dart';
 
+enum RoutingSource { muxed, memo, none }
+
+
 class RoutingInput {
   final String destination;
   final String memoType;
@@ -39,3 +42,24 @@ class DestinationError {
 
   DestinationError({required this.code, required this.message});
 }
+
+class RoutingWarning {
+  final String code;
+
+  const RoutingWarning(this.code);
+
+  static const memoIgnored = RoutingWarning('memo-ignored');
+  static const contractSender = RoutingWarning('contract-sender');
+
+  @override
+  String toString() => code;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RoutingWarning && runtimeType == other.runtimeType && code == other.code;
+
+  @override
+  int get hashCode => code.hashCode;
+}
+

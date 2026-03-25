@@ -1,5 +1,7 @@
 package address
 
+import "fmt"
+
 type ErrorCode string
 
 const (
@@ -12,3 +14,23 @@ const (
 	ErrFederationAddressNotSupported ErrorCode = "FEDERATION_ADDRESS_NOT_SUPPORTED"
 	ErrUnknownPrefix                 ErrorCode = "UNKNOWN_PREFIX"
 )
+
+// Error variables
+var (
+	ErrInvalidChecksumError    = fmt.Errorf(string(ErrInvalidChecksum))
+	ErrInvalidBase32Error      = fmt.Errorf(string(ErrInvalidBase32))
+	ErrInvalidLengthError      = fmt.Errorf(string(ErrInvalidLength))
+	ErrUnknownVersionByteError = fmt.Errorf("unknown version byte")
+)
+
+// AddressError represents an address-related error
+type AddressError struct {
+	Code    ErrorCode
+	Input   string
+	Message string
+}
+
+func (e *AddressError) Error() string {
+	return e.Message
+}
+

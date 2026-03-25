@@ -1,9 +1,10 @@
 package muxed
 
 import (
+	"encoding/binary"
 	"strconv"
 
-	"github.com/stellar/go/strkey"
+	"github.com/stellar-address-kit/core-go/address"
 )
 
 func DecodeMuxed(mAddress string) (string, string, error) {

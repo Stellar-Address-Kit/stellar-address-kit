@@ -1,12 +1,5 @@
-export type ErrorCode =
-  | "INVALID_CHECKSUM"
-  | "INVALID_LENGTH"
-  | "INVALID_BASE32"
-  | "REJECTED_SEED_KEY"
-  | "REJECTED_PREAUTH"
-  | "REJECTED_HASH_X"
-  | "FEDERATION_ADDRESS_NOT_SUPPORTED"
-  | "UNKNOWN_PREFIX";
+import { ErrorCode } from "./errors";
+export type AddressKind = "G" | "M" | "C";
 
 export type WarningCode =
   | "NON_CANONICAL_ADDRESS"
@@ -24,19 +17,26 @@ export type Warning =
       code: "NON_CANONICAL_ADDRESS" | "NON_CANONICAL_ROUTING_ID";
       severity: "warn";
       message: string;
-      normalization: { original: string; normalized: string };
+      normalization: {
+        original: string;
+        normalized: string;
+      };
     }
   | {
       code: "INVALID_DESTINATION";
       severity: "error";
       message: string;
-      context: { destinationKind: "C" };
+      context: {
+        destinationKind: "C";
+      };
     }
   | {
       code: "UNSUPPORTED_MEMO_TYPE";
       severity: "warn";
       message: string;
-      context: { memoType: "hash" | "return" | "unknown" };
+      context: {
+        memoType: "hash" | "return" | "unknown";
+      };
     }
   | {
       code: Exclude<
@@ -50,12 +50,27 @@ export type Warning =
       message: string;
     };
 
-export type ParseResult =
+export type Address =
   | {
-      kind: "G" | "M" | "C";
+      kind: "G";
       address: string;
       warnings: Warning[];
     }
+  | {
+      kind: "M";
+      address: string;
+      baseG: string;
+      muxedId: bigint;
+      warnings: Warning[];
+    }
+  | {
+      kind: "C";
+      address: string;
+      warnings: Warning[];
+    };
+
+export type ParseResult =
+  | Address
   | {
       kind: "invalid";
       error: {
@@ -64,3 +79,6 @@ export type ParseResult =
         message: string;
       };
     };
+
+export { ErrorCode } from "./errors";
+export { AddressParseError } from "./errors";
