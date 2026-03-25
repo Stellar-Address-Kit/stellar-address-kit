@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stellar-address-kit/core-go/address"
@@ -21,6 +22,17 @@ type Vectors struct {
 	Cases []VectorCase `json:"cases"`
 }
 
+func vectorTestName(index int, tc VectorCase) string {
+	description := strings.TrimSpace(tc.Description)
+	if description == "" {
+		description = "unnamed vector"
+	}
+
+	// Keep the label readable in `go test` output while avoiding path-like nesting.
+	description = strings.ReplaceAll(description, "/", "-")
+	return fmt.Sprintf("%03d_%s_%s", index, tc.Module, description)
+}
+
 func TestVectors(t *testing.T) {
 	f, err := os.Open("../../../spec/vectors.json")
 	if err != nil {
@@ -35,8 +47,13 @@ func TestVectors(t *testing.T) {
 		t.Fatalf("failed to unmarshal vectors.json: %v", err)
 	}
 
-	for _, tc := range v.Cases {
-		t.Run(fmt.Sprintf("%s_%s", tc.Module, tc.Description), func(t *testing.T) {
+	for i, tc := range v.Cases {
+		tc := tc
+		name := vectorTestName(i, tc)
+
+		t.Run(name, func(t *testing.T) {
+			t.Logf("vector=%s", name)
+
 			switch tc.Module {
 			case "muxed_encode":
 				baseG := tc.Input["base_g"].(string)
