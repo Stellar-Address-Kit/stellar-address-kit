@@ -52,7 +52,25 @@ export function extractRouting(input: RoutingInput): RoutingResult {
   }
 
   if (parsed.kind === "C") {
+
+    const warnings: Warning[] = [...parsed.warnings];
+
+    warnings.push({
+      code: "CONTRACT_SENDER_DETECTED",
+      severity: "warn",
+      message:
+        "Contract address detected. Contract addresses cannot be used as transaction senders.",
+    });
+
+    return {
+      destinationBaseAccount: null,
+      routingId: null,
+      routingSource: "none",
+      warnings,
+    };
+
     throw new ExtractRoutingError("Contract addresses cannot be routed");
+
   }
 
   if (parsed.kind === "M") {
@@ -118,17 +136,15 @@ export function extractRouting(input: RoutingInput): RoutingResult {
     }
   } else if (input.memoType === "hash" || input.memoType === "return") {
     warnings.push({
-      code: "UNSUPPORTED_MEMO_TYPE",
+      code: "MEMO_TEXT_UNROUTABLE",
       severity: "warn",
       message: `Memo type ${input.memoType} is not supported for routing.`,
-      context: { memoType: input.memoType },
     });
   } else if (input.memoType !== "none") {
     warnings.push({
-      code: "UNSUPPORTED_MEMO_TYPE",
+      code: "MEMO_TEXT_UNROUTABLE",
       severity: "warn",
       message: `Unrecognized memo type: ${input.memoType}`,
-      context: { memoType: "unknown" },
     });
   }
 
