@@ -9,7 +9,7 @@ RoutingResult extractRouting(RoutingInput input) {
 
   if (parsed.kind == null) {
     return RoutingResult(
-      routingSource: 'none',
+      routingSource: RoutingSource.none,
       warnings: [],
       destinationError: DestinationError(
         code: parsed.error!.code,
@@ -20,7 +20,7 @@ RoutingResult extractRouting(RoutingInput input) {
 
   if (parsed.kind == AddressKind.c) {
     return RoutingResult(
-      routingSource: 'none',
+      routingSource: RoutingSource.none,
       warnings: [
         Warning(
           code: WarningCode.invalidDestination,
@@ -63,22 +63,24 @@ RoutingResult extractRouting(RoutingInput input) {
     return RoutingResult(
       destinationBaseAccount: 'PLACEHOLDER_G_ADDRESS', // To be implemented
       routingId: 'PLACEHOLDER_ID', // To be implemented
-      routingSource: 'muxed',
+      routingSource: RoutingSource.muxed,
       warnings: warnings,
     );
   }
 
+  // G-address branch
   String? routingId;
-  String routingSource = 'none';
+  RoutingSource routingSource = RoutingSource.none;
   final warnings = List<Warning>.from(parsed.warnings);
 
   if (input.memoType == 'id') {
-    final norm = normalizeMemoTextId(input.memoValue ?? '');
-    routingId = norm.normalized;
-    routingSource = norm.normalized != null ? 'memo' : 'none';
-    warnings.addAll(norm.warnings);
-
-    if (norm.normalized == null) {
+    // Strict MEMO_ID branch: parse as BigInt, reject invalid padding
+    final raw = input.memoValue ?? '';
+    final norm = normalizeMemoId(raw);
+    if (norm.normalized != null) {
+      routingId = norm.normalized;
+      routingSource = RoutingSource.memo;
+    } else {
       warnings.add(
         Warning(
           code: WarningCode.memoIdInvalidFormat,
@@ -87,11 +89,12 @@ RoutingResult extractRouting(RoutingInput input) {
         ),
       );
     }
+    warnings.addAll(norm.warnings);
   } else if (input.memoType == 'text' && input.memoValue != null) {
     final norm = normalizeMemoTextId(input.memoValue!);
     if (norm.normalized != null) {
       routingId = norm.normalized;
-      routingSource = 'memo';
+      routingSource = RoutingSource.memo;
       warnings.addAll(norm.warnings);
     } else {
       warnings.add(

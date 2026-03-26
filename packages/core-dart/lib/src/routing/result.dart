@@ -20,7 +20,7 @@ class RoutingInput {
 class RoutingResult {
   final String? destinationBaseAccount;
   final String? routingId; // decimal uint64 string — spec level
-  final String routingSource; // 'muxed' | 'memo' | 'none'
+  final RoutingSource routingSource;
   final List<Warning> warnings;
   final DestinationError? destinationError;
 
