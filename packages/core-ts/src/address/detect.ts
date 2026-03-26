@@ -4,24 +4,24 @@ const BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 /**
  *  * Decodes a Base32-encoded string into a byte array.
-  *
-   * This function:
-    * - Accepts a Base32 string (case-insensitive)
-     * - Ignores padding characters (`=`)
-      * - Converts the encoded data into its original binary form
-       *
-        * Internally, it processes the input in 5-bit chunks (Base32 encoding)
-         * and reconstructs 8-bit bytes using a bit buffer.
-          *
-           * @param input - The Base32-encoded string to decode.
-            * @returns A Uint8Array containing the decoded binary data.
-             *
-              * @throws {Error} If the input contains characters not found in the Base32 alphabet.
-               *
-                * @example
-                 * const bytes = decodeBase32("MZXW6==="); // "foo"
-                  * console.log(new TextDecoder().decode(bytes)); // "foo"
-                   */
+ *
+ * This function:
+ * - Accepts a Base32 string (case-insensitive)
+ * - Ignores padding characters (`=`)
+ * - Converts the encoded data into its original binary form
+ *
+ * Internally, it processes the input in 5-bit chunks (Base32 encoding)
+ * and reconstructs 8-bit bytes using a bit buffer.
+ *
+ * @param input - The Base32-encoded string to decode.
+ * @returns A Uint8Array containing the decoded binary data.
+ *
+ * @throws {Error} If the input contains characters not found in the Base32 alphabet.
+ *
+ * @example
+ * const bytes = decodeBase32("MZXW6==="); // "foo"
+ * console.log(new TextDecoder().decode(bytes)); // "foo"
+ */
  */
 function decodeBase32(input: string): Uint8Array {
   const s = input.toUpperCase().replace(/=+$/, "");
