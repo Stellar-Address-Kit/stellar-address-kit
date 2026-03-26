@@ -23,7 +23,7 @@ type RoutingResult struct {
 
 	// Backward-compatible fields used by current extraction flow.
 	DestinationBaseAccount string            `json:"destinationBaseAccount,omitempty"`
-	RoutingID              string            `json:"routingId,omitempty"`
+	RoutingID              *uint64           `json:"routingId,omitempty"`
 	RoutingSource          string            `json:"routingSource,omitempty"`
 	Warnings               []address.Warning `json:"warnings,omitempty"`
 	DestinationError       *DestinationError `json:"destinationError,omitempty"`

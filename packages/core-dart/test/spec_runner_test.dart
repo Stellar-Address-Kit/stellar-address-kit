@@ -58,6 +58,9 @@ void main() {
             break;
 
           case 'extract_routing':
+            // These vectors currently use placeholder addresses that are not
+            // valid StrKey inputs, so routing behavior is covered in the
+            // dedicated extract_routing_test.dart unit tests instead.
             break;
         }
       });

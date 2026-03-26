@@ -4,7 +4,38 @@ import { decodeMuxed } from "../muxed/decode";
 import { normalizeMemoTextId } from "./memo";
 import { Warning } from "../address/types";
 
+export class ExtractRoutingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ExtractRoutingError";
+    Object.setPrototypeOf(this, ExtractRoutingError.prototype);
+  }
+}
+
+/**
+ * Validates that the destination string passes the minimum structural
+ * requirements for a Stellar address before routing logic is applied.
+ * Only G-addresses and M-addresses are valid routing targets.
+ * Throws ExtractRoutingError for anything that fails this check.
+ */
+function assertRoutableAddress(destination: string): void {
+  if (!destination || typeof destination !== "string") {
+    throw new ExtractRoutingError(
+      "Invalid input: destination must be a non-empty string."
+    );
+  }
+
+  const prefix = destination.trim()[0]?.toUpperCase();
+  if (prefix !== "G" && prefix !== "M") {
+    throw new ExtractRoutingError(
+      `Invalid destination: expected a G or M address, got "${destination}".`
+    );
+  }
+}
+
 export function extractRouting(input: RoutingInput): RoutingResult {
+  assertRoutableAddress(input.destination);
+
   const parsed = parse(input.destination);
 
   if (parsed.kind === "invalid") {
@@ -21,19 +52,7 @@ export function extractRouting(input: RoutingInput): RoutingResult {
   }
 
   if (parsed.kind === "C") {
-    return {
-      destinationBaseAccount: null,
-      routingId: null,
-      routingSource: "none",
-      warnings: [
-        {
-          code: "INVALID_DESTINATION",
-          severity: "error",
-          message: "C address is not a valid destination",
-          context: { destinationKind: "C" },
-        },
-      ],
-    };
+    throw new ExtractRoutingError("Contract addresses cannot be routed");
   }
 
   if (parsed.kind === "M") {

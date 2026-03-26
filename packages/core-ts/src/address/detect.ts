@@ -1,7 +1,19 @@
-import { StrKey } from "@stellar/stellar-sdk";
+import StellarSdk from "@stellar/stellar-sdk";
+
+const { StrKey } = StellarSdk;
 
 const BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
+/**
+ * @param input - The Base32-encoded string to decode.
+ * @returns A Uint8Array containing the decoded binary data.
+ *
+ * @throws {Error} If the input contains characters not found in the Base32 alphabet.
+ *
+ * @example
+ * const bytes = decodeBase32("MZXW6==="); // "foo"
+ * console.log(new TextDecoder().decode(bytes)); // "foo"
+ */
 function decodeBase32(input: string): Uint8Array {
   const s = input.toUpperCase().replace(/=+$/, "");
   const byteCount = Math.floor((s.length * 5) / 8);
@@ -25,6 +37,25 @@ function decodeBase32(input: string): Uint8Array {
   return result;
 }
 
+/**
+ * Computes a 16-bit CRC (Cyclic Redundancy Check) for the given byte array.
+ *
+ * This implementation uses the CRC-16-CCITT polynomial (0x1021) with:
+ * - Initial value: 0x0000
+ * - No reflection (input or output)
+ * - No final XOR
+ *
+ * The function processes each byte bit-by-bit, updating the CRC value
+ * using a shift register and polynomial XOR operations.
+ *
+ * @param bytes - The input data as a Uint8Array.
+ * @returns The computed 16-bit CRC value as a number (0–65535).
+ *
+ * @example
+ * const data = new Uint8Array([0x01, 0x02, 0x03]);
+ * const checksum = crc16(data);
+ * console.log(checksum); // e.g., 0x6131
+ */
 function crc16(bytes: Uint8Array): number {
   let crc = 0;
   for (const byte of bytes) {
@@ -42,9 +73,29 @@ function crc16(bytes: Uint8Array): number {
 }
 
 /**
- * Detects the kind of a Stellar address.
- * Standard addresses (G, M, C) are validated using the Stellar SDK.
- * Custom M-addresses (0x60 format) are validated using internal logic.
+ * Detects the type of a Stellar address.
+ *
+ * The function classifies the input string into one of the following:
+ * - `"G"`: Ed25519 public key (standard account address)
+ * - `"M"`: Med25519 (muxed) account address
+ * - `"C"`: Contract address
+ * - `"invalid"`: Not a valid or recognized address
+ *
+ * Detection is performed in two stages:
+ * 1. Uses official `StrKey` validation methods for known address types.
+ * 2. Falls back to manual validation for muxed (`"M"`) addresses by:
+ *    - Decoding the Base32 string
+ *    - Verifying structure (length and version byte)
+ *    - Validating the CRC16 checksum
+ *
+ * @param address - The address string to evaluate.
+ * @returns A string indicating the detected address type or `"invalid"` if none match.
+ *
+ * @example
+ * detect("GBRPYHIL2C..."); // "G"
+ * detect("MA3D5F...");     // "M"
+ * detect("CA7Q...");       // "C"
+ * detect("invalid");       // "invalid"
  */
 export function detect(address: string): "G" | "M" | "C" | "invalid" {
   if (!address) return "invalid";
