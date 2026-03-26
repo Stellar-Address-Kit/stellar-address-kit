@@ -1,6 +1,21 @@
 import '../address/codes.dart';
 
-enum RoutingSource { muxed, memo, none }
+enum RoutingSource {
+  muxed,
+  memo,
+  none;
+
+  String toDisplayString() {
+    switch (this) {
+      case RoutingSource.muxed:
+        return 'Routed via muxed address (M-address)';
+      case RoutingSource.memo:
+        return 'Routed via memo ID';
+      case RoutingSource.none:
+        return 'No routing source detected';
+    }
+  }
+}
 
 
 class RoutingInput {
