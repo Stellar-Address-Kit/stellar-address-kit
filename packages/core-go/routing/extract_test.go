@@ -26,7 +26,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "",
+				RoutingID:              nil,
 				RoutingSource:          "none",
 				Warnings:               []address.Warning{},
 			},
@@ -40,7 +40,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "100",
+				RoutingID:              ptrUint64(100),
 				RoutingSource:          "memo",
 				Warnings:               []address.Warning{},
 			},
@@ -68,7 +68,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "7",
+				RoutingID:              ptrUint64(7),
 				RoutingSource:          "memo",
 				Warnings: []address.Warning{
 					{
@@ -115,7 +115,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "",
+				RoutingID:              nil,
 				RoutingSource:          "none",
 				Warnings: []address.Warning{
 					{
@@ -138,7 +138,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "",
+				RoutingID:              nil,
 				RoutingSource:          "none",
 				Warnings: []address.Warning{
 					{
@@ -160,7 +160,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "9007199254740993",
+				RoutingID:              ptrUint64(9007199254740993),
 				RoutingSource:          "muxed",
 				Warnings:               []address.Warning{},
 			},
@@ -174,7 +174,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "9007199254740993",
+				RoutingID:              ptrUint64(9007199254740993),
 				RoutingSource:          "muxed",
 				Warnings: []address.Warning{
 					{
@@ -194,7 +194,7 @@ func TestExtractRouting_RoutingMatrix(t *testing.T) {
 			},
 			expected: RoutingResult{
 				DestinationBaseAccount: testBaseG,
-				RoutingID:              "9007199254740993",
+				RoutingID:              ptrUint64(9007199254740993),
 				RoutingSource:          "muxed",
 				Warnings: []address.Warning{
 					{
@@ -243,13 +243,17 @@ func TestExtractRouting_ContractSourceClearsRoutingState(t *testing.T) {
 	})
 }
 
+func ptrUint64(v uint64) *uint64 {
+	return &v
+}
+
 func assertRoutingResult(t *testing.T, got, want RoutingResult) {
 	t.Helper()
 
 	if got.DestinationBaseAccount != want.DestinationBaseAccount {
 		t.Errorf("DestinationBaseAccount = %v, want %v", got.DestinationBaseAccount, want.DestinationBaseAccount)
 	}
-	if got.RoutingID != want.RoutingID {
+	if !uint64PtrEqual(got.RoutingID, want.RoutingID) {
 		t.Errorf("RoutingID = %v, want %v", got.RoutingID, want.RoutingID)
 	}
 	if got.RoutingSource != want.RoutingSource {
@@ -261,4 +265,14 @@ func assertRoutingResult(t *testing.T, got, want RoutingResult) {
 	if !reflect.DeepEqual(got.DestinationError, want.DestinationError) {
 		t.Errorf("DestinationError = %#v, want %#v", got.DestinationError, want.DestinationError)
 	}
+}
+
+func uint64PtrEqual(a, b *uint64) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }

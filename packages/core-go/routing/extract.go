@@ -2,6 +2,7 @@ package routing
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/stellar-address-kit/core-go/address"
@@ -108,20 +109,21 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 
 		return RoutingResult{
 			DestinationBaseAccount: baseG,
-			RoutingID:              id,
+			RoutingID:              &id,
 			RoutingSource:          "muxed",
 			Warnings:               warnings,
 		}
 	}
 
-	routingID := ""
+	routingID := (*uint64)(nil)
 	routingSource := "none"
 	warnings := []address.Warning{}
 
 	if input.MemoType == "id" {
 		norm := NormalizeMemoTextID(input.MemoValue)
-		routingID = norm.Normalized
 		if norm.Normalized != "" {
+			parsedID, _ := strconv.ParseUint(norm.Normalized, 10, 64)
+			routingID = &parsedID
 			routingSource = "memo"
 		}
 		warnings = append(warnings, norm.Warnings...)
@@ -136,7 +138,8 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 	} else if input.MemoType == "text" && input.MemoValue != "" {
 		norm := NormalizeMemoTextID(input.MemoValue)
 		if norm.Normalized != "" {
-			routingID = norm.Normalized
+			parsedID, _ := strconv.ParseUint(norm.Normalized, 10, 64)
+			routingID = &parsedID
 			routingSource = "memo"
 			warnings = append(warnings, norm.Warnings...)
 		} else {
