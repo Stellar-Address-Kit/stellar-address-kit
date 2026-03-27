@@ -1,5 +1,6 @@
 import { RoutingInput, RoutingResult } from "./types";
 import { parse } from "../address/parse";
+import { AddressParseError } from "../address/errors";
 import { decodeMuxed } from "../muxed/decode";
 import { normalizeMemoTextId } from "./memo";
 import { Warning } from "../address/types";
@@ -36,7 +37,24 @@ function assertRoutableAddress(destination: string): void {
 export function extractRouting(input: RoutingInput): RoutingResult {
   assertRoutableAddress(input.destination);
 
-  const parsed = parse(input.destination);
+  let parsed;
+  try {
+    parsed = parse(input.destination);
+  } catch (error) {
+    if (error instanceof AddressParseError) {
+      return {
+        destinationBaseAccount: null,
+        routingId: null,
+        routingSource: "none",
+        warnings: [],
+        destinationError: {
+          code: error.code,
+          message: error.message,
+        },
+      };
+    }
+    throw error;
+  }
 
   if (parsed.kind === "invalid") {
     return {
