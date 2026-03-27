@@ -1,4 +1,4 @@
-import StellarSdk from "@stellar/stellar-sdk";
+import { MuxedAccount } from "@stellar/stellar-sdk";
 import { MuxedResult } from "./types";
 
 const { StrKey } = StellarSdk;

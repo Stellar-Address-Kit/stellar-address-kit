@@ -2,18 +2,15 @@ package muxed
 
 import (
 	"fmt"
-	"math/big"
+	"strconv"
 
 	"github.com/stellar/go/strkey"
 )
 
 func EncodeMuxed(baseG string, id string) (string, error) {
-	idInt := new(big.Int)
-	if _, ok := idInt.SetString(id, 10); !ok {
-		return "", fmt.Errorf("invalid muxed account id %q", id)
-	}
-	if idInt.Sign() < 0 || idInt.BitLen() > 64 {
-		return "", fmt.Errorf("muxed account id %q exceeds uint64", id)
+	idUint, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid muxed account id %q: %w", id, err)
 	}
 
 	var muxedAccount strkey.MuxedAccount
@@ -21,6 +18,6 @@ func EncodeMuxed(baseG string, id string) (string, error) {
 		return "", err
 	}
 
-	muxedAccount.SetID(idInt.Uint64())
+	muxedAccount.SetID(idUint)
 	return muxedAccount.Address()
 }
