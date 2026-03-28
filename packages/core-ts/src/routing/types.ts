@@ -62,7 +62,7 @@ export type Warning =
 
 export type RoutingResult = {
   destinationBaseAccount: string | null;
-  routingId: string | null; // decimal uint64 string — spec level
+  routingId: string | bigint | null;
   routingSource: RoutingSource;
   warnings: Warning[]; // WarningCode only, always
   destinationError?: {
@@ -71,6 +71,12 @@ export type RoutingResult = {
   };
 };
 
-export function routingIdAsBigInt(routingId: string | null): bigint | null {
-  return routingId ? BigInt(routingId) : null;
+export function routingIdAsBigInt(
+  routingId: string | bigint | null
+): bigint | null {
+  if (routingId === null) {
+    return null;
+  }
+
+  return typeof routingId === "bigint" ? routingId : BigInt(routingId);
 }
