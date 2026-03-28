@@ -23,7 +23,7 @@ describe("Normative Vector Tests", () => {
           } else {
             const result = decodeMuxed(c.input.mAddress);
             expect(result.baseG).toBe(c.expected.base_g);
-            expect(result.id.toString()).toBe(c.expected.id);
+            expect(result.id).toBe(BigInt(c.expected.id));
           }
           break;
         }
