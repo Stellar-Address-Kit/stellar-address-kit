@@ -49,9 +49,16 @@ function decodeStrKey(address: string): Uint8Array {
   return data;
 }
 
-export function decodeMuxed(mAddress: string): { baseG: string; id: string } {
+/**
+ * Decodes a muxed Stellar address into its base G address and numeric ID.
+ * Returns a typed structure to ensure native TypeScript protection and clean destructuring.
+ * 
+ * @param mAddress The muxed Stellar address (starts with M).
+ * @returns An object containing the base G address and the 64-bit ID as a bigint.
+ */
+export function decodeMuxed(mAddress: string): { baseG: string; id: bigint } {
   const data = decodeStrKey(mAddress);
-  // Layout: [Version(1)] [Pubkey(32)] [ID(8)]
+  // Layout for Muxed Address: [Version(1)] [Pubkey(32)] [ID(8)]
   if (data.length !== 41) throw new Error("invalid payload length");
 
   const pubkey = data.slice(1, 33);
@@ -64,6 +71,6 @@ export function decodeMuxed(mAddress: string): { baseG: string; id: string } {
 
   return {
     baseG: StrKey.encodeEd25519PublicKey(Buffer.from(pubkey)),
-    id: id.toString(),
+    id: id,
   };
 }

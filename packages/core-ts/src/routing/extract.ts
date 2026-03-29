@@ -32,6 +32,44 @@ function assertRoutableAddress(destination: string): void {
   }
 }
 
+/**
+ * Resolves deposit routing from a destination address plus memo context.
+ *
+ * Decision tree:
+ * 1. Destination pre-check (`assertRoutableAddress`)
+ *    - Requires a non-empty string starting with `G` or `M`.
+ *    - Throws `ExtractRoutingError` for structurally invalid routing targets.
+ * 2. Destination parse (`parse`)
+ *    - If parsing throws `AddressParseError`, returns `routingSource: "none"`
+ *      with `destinationError` populated.
+ * 3. Parsed kind branches
+ *    - `M`: routing ID is extracted from muxed ID (`routingSource: "muxed"`).
+ *      - If memo also looks routable (`memoType: "id"` or numeric `memoType: "text"`),
+ *        emits `MEMO_PRESENT_WITH_MUXED` because muxed ID takes precedence.
+ *      - If any other memo is present, emits `MEMO_IGNORED_FOR_MUXED`.
+ *    - `G`: routing can come from memo (`routingSource: "memo"`) or be absent.
+ *      - `memoType: "id"`: validates/normalizes uint64 decimal; invalid values emit
+ *        `MEMO_ID_INVALID_FORMAT`.
+ *      - `memoType: "text"`: routable only when numeric uint64; otherwise emits
+ *        `MEMO_TEXT_UNROUTABLE`.
+ *      - `memoType: "hash" | "return"` or unknown non-`none` memo type: emits
+ *        `MEMO_TEXT_UNROUTABLE` and keeps `routingSource: "none"`.
+ *    - `C`: treated as non-routable in this flow; returns `routingSource: "none"`
+ *      with `CONTRACT_SENDER_DETECTED` warning.
+ *    - `invalid`: returns `routingSource: "none"` with empty warnings.
+ *
+ * Output guarantees:
+ * - `destinationBaseAccount` is:
+ *   - Base G-address for `M` inputs,
+ *   - Canonical G-address for `G` inputs,
+ *   - `null` when non-routable.
+ * - `routingId` is a canonical decimal string when present.
+ * - `warnings` accumulates parse normalization warnings plus routing-policy warnings.
+ *
+ * @param input Routing context with destination, memo type/value, and optional source account.
+ * @returns A `RoutingResult` describing destination base account, selected routing ID,
+ * routing source (`muxed`, `memo`, or `none`), and any warnings/errors.
+ */
 export function extractRouting(input: RoutingInput): RoutingResult {
   assertRoutableAddress(input.destination);
 

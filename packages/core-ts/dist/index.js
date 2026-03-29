@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -15,11 +17,21 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  AddressParseError: () => AddressParseError,
+  ExtractRoutingError: () => ExtractRoutingError,
   decodeMuxed: () => decodeMuxed,
   detect: () => detect,
   encodeMuxed: () => encodeMuxed,
@@ -32,140 +44,209 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
+// src/address/errors.ts
+var AddressParseError = class _AddressParseError extends Error {
+  code;
+  input;
+  constructor(code, input, message) {
+    super(message);
+    this.name = "AddressParseError";
+    this.code = code;
+    this.input = input;
+    Object.setPrototypeOf(this, _AddressParseError.prototype);
+  }
+};
+
 // src/address/detect.ts
-var import_stellar_sdk = require("@stellar/stellar-sdk");
+var import_stellar_sdk = __toESM(require("@stellar/stellar-sdk"));
+var { StrKey } = import_stellar_sdk.default;
+var BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function decodeBase32(input) {
+  const s = input.toUpperCase().replace(/=+$/, "");
+  const byteCount = Math.floor(s.length * 5 / 8);
+  const result = new Uint8Array(byteCount);
+  let buffer = 0;
+  let bitsLeft = 0;
+  let byteIndex = 0;
+  for (const ch of s) {
+    const value = BASE32_CHARS.indexOf(ch);
+    if (value === -1) throw new Error(`Invalid base32 character: ${ch}`);
+    buffer = buffer << 5 | value;
+    bitsLeft += 5;
+    if (bitsLeft >= 8) {
+      if (byteIndex < byteCount) {
+        result[byteIndex++] = buffer >> bitsLeft - 8 & 255;
+      }
+      bitsLeft -= 8;
+      buffer &= (1 << bitsLeft) - 1;
+    }
+  }
+  return result;
+}
+function crc16(bytes) {
+  let crc = 0;
+  for (const byte of bytes) {
+    crc ^= byte << 8;
+    for (let i = 0; i < 8; i++) {
+      if (crc & 32768) {
+        crc = crc << 1 ^ 4129;
+      } else {
+        crc <<= 1;
+      }
+      crc &= 65535;
+    }
+  }
+  return crc;
+}
 function detect(address) {
-  if (import_stellar_sdk.StrKey.isValidEd25519PublicKey(address)) return "G";
-  if (import_stellar_sdk.StrKey.isValidMed25519PublicKey(address)) return "M";
-  if (import_stellar_sdk.StrKey.isValidContract(address)) return "C";
+  if (!address) return "invalid";
+  const up = address.toUpperCase();
+  if (StrKey.isValidEd25519PublicKey(up)) return "G";
+  if (StrKey.isValidMed25519PublicKey(up)) return "M";
+  if (StrKey.isValidContract(up)) return "C";
+  try {
+    const prefix = up[0];
+    if (prefix === "M") {
+      const decoded = decodeBase32(up);
+      if (decoded.length === 43 && decoded[0] === 96) {
+        const data = decoded.slice(0, decoded.length - 2);
+        const checksum = decoded[decoded.length - 2] | decoded[decoded.length - 1] << 8;
+        if (crc16(data) === checksum) {
+          return "M";
+        }
+      }
+    }
+  } catch {
+  }
   return "invalid";
 }
 
 // src/address/validate.ts
-function validate(address, options) {
-  const kind = detect(address);
-  if (kind === "invalid") return false;
-  if (options?.strict && address !== address.toUpperCase()) return false;
-  return true;
-}
-
-// src/address/parse.ts
-function parse(address) {
-  const kind = detect(address);
-  if (kind === "invalid") {
-    return {
-      kind: "invalid",
-      error: {
-        code: "UNKNOWN_PREFIX",
-        input: address,
-        message: "Invalid address"
-      }
-    };
-  }
-  const warnings = [];
-  if (address !== address.toUpperCase()) {
-    warnings.push({
-      code: "NON_CANONICAL_ADDRESS",
-      severity: "warn",
-      message: "Address normalized to uppercase",
-      normalization: { original: address, normalized: address.toUpperCase() }
-    });
-  }
-  return { kind, address: address.toUpperCase(), warnings };
-}
-
-// src/muxed/encode.ts
-var import_stellar_sdk2 = require("@stellar/stellar-sdk");
-function encodeMuxed(baseG, id) {
-  const pubkey = import_stellar_sdk2.StrKey.decodeEd25519PublicKey(baseG);
-  const payload = Buffer.alloc(32 + 8);
-  payload.set(pubkey, 0);
-  let idBig = BigInt(id);
-  for (let i = 7; i >= 0; i--) {
-    payload[32 + i] = Number(idBig & 0xffn);
-    idBig >>= 8n;
-  }
-  return import_stellar_sdk2.StrKey.encodeMed25519PublicKey(payload);
+function validate(address, kind) {
+  const detected = detect(address);
+  if (detected === "invalid") return false;
+  if (kind === void 0) return true;
+  return detected === kind;
 }
 
 // src/muxed/decode.ts
-var import_stellar_sdk3 = require("@stellar/stellar-sdk");
+var import_stellar_sdk2 = require("@stellar/stellar-sdk");
+var BASE32_CHARS2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function decodeBase322(input) {
+  const s = input.toUpperCase().replace(/=+$/, "");
+  const byteCount = Math.floor(s.length * 5 / 8);
+  const result = new Uint8Array(byteCount);
+  let buffer = 0;
+  let bitsLeft = 0;
+  let byteIndex = 0;
+  for (const ch of s) {
+    const value = BASE32_CHARS2.indexOf(ch);
+    if (value === -1) throw new Error(`Invalid base32 character: ${ch}`);
+    buffer = buffer << 5 | value;
+    bitsLeft += 5;
+    if (bitsLeft >= 8) {
+      if (byteIndex < byteCount) {
+        result[byteIndex++] = buffer >> bitsLeft - 8 & 255;
+      }
+      bitsLeft -= 8;
+    }
+  }
+  return result;
+}
+function crc162(bytes) {
+  let crc = 0;
+  for (const byte of bytes) {
+    crc ^= byte << 8;
+    for (let i = 0; i < 8; i++) {
+      crc = crc & 32768 ? crc << 1 ^ 4129 : crc << 1;
+    }
+  }
+  return crc & 65535;
+}
+function decodeStrKey(address) {
+  const up = address.toUpperCase();
+  const decoded = decodeBase322(up);
+  if (decoded.length < 3) throw new Error("invalid encoded string");
+  const data = decoded.slice(0, decoded.length - 2);
+  const checksum = decoded[decoded.length - 2] | decoded[decoded.length - 1] << 8;
+  const computed = crc162(data);
+  if (computed !== checksum) throw new Error("invalid checksum");
+  return data;
+}
 function decodeMuxed(mAddress) {
-  const decoded = import_stellar_sdk3.StrKey.decodeMed25519PublicKey(mAddress);
-  const ed25519 = decoded.subarray(0, 32);
-  const idBytes = decoded.subarray(32, 40);
+  const data = decodeStrKey(mAddress);
+  if (data.length !== 41) throw new Error("invalid payload length");
+  const pubkey = data.slice(1, 33);
+  const idBytes = data.slice(33, 41);
   let id = 0n;
   for (const byte of idBytes) {
     id = (id << 8n) + BigInt(byte);
   }
   return {
-    baseG: import_stellar_sdk3.StrKey.encodeEd25519PublicKey(ed25519),
-    id: id.toString()
+    baseG: import_stellar_sdk2.StrKey.encodeEd25519PublicKey(Buffer.from(pubkey)),
+    id
   };
 }
 
-// src/routing/extract.ts
-function extractRouting(input) {
-  const parsed = parse(input.destination);
-  if (parsed.kind === "invalid") {
-    return {
-      destinationBaseAccount: null,
-      routingId: null,
-      routingSource: "none",
-      warnings: [],
-      destinationError: {
-        code: parsed.error.code,
-        message: parsed.error.message
-      }
-    };
+// src/address/parse.ts
+function parse(address) {
+  const up = address.toUpperCase();
+  const kind = detect(up);
+  if (kind === "invalid") {
+    const first = up[0];
+    if (first === "G" || first === "M" || first === "C") {
+      throw new AddressParseError(
+        "INVALID_CHECKSUM",
+        address,
+        "Invalid address checksum"
+      );
+    }
+    throw new AddressParseError("UNKNOWN_PREFIX", address, "Invalid address");
   }
-  if (parsed.kind === "C") {
-    return {
-      destinationBaseAccount: null,
-      routingId: null,
-      routingSource: "none",
-      warnings: [
-        {
-          code: "INVALID_DESTINATION",
-          severity: "error",
-          message: "C address is not a valid destination",
-          context: { destinationKind: "C" }
+  switch (kind) {
+    case "G":
+      return { kind: "G", address: up, warnings: [] };
+    case "C":
+      return { kind: "C", address: up, warnings: [] };
+    case "M": {
+      try {
+        const decoded = decodeMuxed(up);
+        return {
+          kind: "M",
+          address: up,
+          baseG: decoded.baseG,
+          muxedId: decoded.id,
+          warnings: []
+        };
+      } catch (error) {
+        if (error instanceof AddressParseError) {
+          throw error;
         }
-      ]
-    };
+        throw new AddressParseError(
+          "INVALID_CHECKSUM",
+          address,
+          "Invalid muxed address"
+        );
+      }
+    }
   }
-  if (parsed.kind === "M") {
-    const { baseG, id } = decodeMuxed(parsed.address);
-    return {
-      destinationBaseAccount: baseG,
-      routingId: id,
-      routingSource: "muxed",
-      warnings: parsed.warnings
-    };
-  }
-  return {
-    destinationBaseAccount: parsed.address,
-    routingId: null,
-    routingSource: "none",
-    warnings: parsed.warnings
-  };
 }
 
-// src/routing/extractFromTx.ts
-function extractRoutingFromTx(tx) {
-  const op = tx.operations[0];
-  if (!op || op.type !== "payment") return null;
-  return extractRouting({
-    destination: op.destination,
-    memoType: tx.memo.type,
-    memoValue: tx.memo.value?.toString() ?? null,
-    sourceAccount: tx.source ?? null
-  });
-}
-
-// src/routing/types.ts
-function routingIdAsBigInt(routingId) {
-  return routingId ? BigInt(routingId) : null;
+// src/muxed/encode.ts
+var import_stellar_sdk3 = require("@stellar/stellar-sdk");
+var MAX_UINT64 = 18446744073709551615n;
+function encodeMuxed(baseG, id) {
+  if (typeof id !== "bigint") {
+    throw new TypeError(`ID must be a bigint, received ${typeof id}`);
+  }
+  if (id < 0n || id > MAX_UINT64) {
+    throw new RangeError(`ID is outside the uint64 range: 0 to ${MAX_UINT64}`);
+  }
+  if (!import_stellar_sdk3.StrKey.isValidEd25519PublicKey(baseG)) {
+    throw new Error(`Invalid base G address (Ed25519 public key expected)`);
+  }
+  const muxed = new import_stellar_sdk3.MuxedAccount(baseG, id.toString());
+  return muxed.accountId();
 }
 
 // src/routing/memo.ts
@@ -197,8 +278,171 @@ function normalizeMemoTextId(s) {
   }
   return { normalized, warnings };
 }
+
+// src/routing/extract.ts
+var ExtractRoutingError = class _ExtractRoutingError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ExtractRoutingError";
+    Object.setPrototypeOf(this, _ExtractRoutingError.prototype);
+  }
+};
+function assertRoutableAddress(destination) {
+  if (!destination || typeof destination !== "string") {
+    throw new ExtractRoutingError(
+      "Invalid input: destination must be a non-empty string."
+    );
+  }
+  const prefix = destination.trim()[0]?.toUpperCase();
+  if (prefix !== "G" && prefix !== "M") {
+    throw new ExtractRoutingError(
+      `Invalid destination: expected a G or M address, got "${destination}".`
+    );
+  }
+}
+function extractRouting(input) {
+  assertRoutableAddress(input.destination);
+  let parsed;
+  try {
+    parsed = parse(input.destination);
+  } catch (error) {
+    if (error instanceof AddressParseError) {
+      return {
+        destinationBaseAccount: null,
+        routingId: null,
+        routingSource: "none",
+        warnings: [],
+        destinationError: {
+          code: error.code,
+          message: error.message
+        }
+      };
+    }
+    throw error;
+  }
+  if (parsed.kind === "invalid") {
+    return {
+      destinationBaseAccount: null,
+      routingId: null,
+      routingSource: "none",
+      warnings: []
+    };
+  }
+  if (parsed.kind === "C") {
+    const warnings2 = [...parsed.warnings];
+    warnings2.push({
+      code: "CONTRACT_SENDER_DETECTED",
+      severity: "warn",
+      message: "Contract address detected. Contract addresses cannot be used as transaction senders."
+    });
+    return {
+      destinationBaseAccount: null,
+      routingId: null,
+      routingSource: "none",
+      warnings: warnings2
+    };
+  }
+  if (parsed.kind === "M") {
+    const warnings2 = [...parsed.warnings];
+    if (input.memoType === "id" || input.memoType === "text" && /^\d+$/.test(input.memoValue ?? "")) {
+      warnings2.push({
+        code: "MEMO_PRESENT_WITH_MUXED",
+        severity: "warn",
+        message: "Routing ID found in both M-address and Memo. M-address ID takes precedence."
+      });
+    } else if (input.memoType !== "none") {
+      warnings2.push({
+        code: "MEMO_IGNORED_FOR_MUXED",
+        severity: "info",
+        message: "Memo present with M-address. Any potential routing ID in memo is ignored."
+      });
+    }
+    return {
+      destinationBaseAccount: parsed.baseG,
+      routingId: parsed.muxedId,
+      routingSource: "muxed",
+      warnings: warnings2
+    };
+  }
+  let routingId = null;
+  let routingSource = "none";
+  const warnings = [...parsed.warnings];
+  if (input.memoType === "id") {
+    const rawValue = input.memoValue ?? "";
+    const norm = normalizeMemoTextId(rawValue);
+    if (norm.normalized) {
+      const parsedMemoId = BigInt(norm.normalized);
+      routingId = parsedMemoId.toString();
+      routingSource = "memo";
+      warnings.push(...norm.warnings);
+    } else {
+      routingSource = "none";
+      warnings.push(...norm.warnings);
+      warnings.push({
+        code: "MEMO_ID_INVALID_FORMAT",
+        severity: "warn",
+        message: "MEMO_ID was empty, non-numeric, or exceeded uint64 max."
+      });
+    }
+  } else if (input.memoType === "text" && input.memoValue) {
+    const norm = normalizeMemoTextId(input.memoValue);
+    if (norm.normalized) {
+      routingId = norm.normalized;
+      routingSource = "memo";
+      warnings.push(...norm.warnings);
+    } else {
+      warnings.push({
+        code: "MEMO_TEXT_UNROUTABLE",
+        severity: "warn",
+        message: "MEMO_TEXT was not a valid numeric uint64."
+      });
+    }
+  } else if (input.memoType === "hash" || input.memoType === "return") {
+    warnings.push({
+      code: "MEMO_TEXT_UNROUTABLE",
+      severity: "warn",
+      message: `Memo type ${input.memoType} is not supported for routing.`
+    });
+  } else if (input.memoType !== "none") {
+    warnings.push({
+      code: "MEMO_TEXT_UNROUTABLE",
+      severity: "warn",
+      message: `Unrecognized memo type: ${input.memoType}`
+    });
+  }
+  return {
+    destinationBaseAccount: parsed.address,
+    routingId,
+    routingSource,
+    warnings
+  };
+}
+
+// src/routing/extractFromTx.ts
+var import_stellar_sdk4 = __toESM(require("@stellar/stellar-sdk"));
+var { Transaction } = import_stellar_sdk4.default;
+function extractRoutingFromTx(tx) {
+  const op = tx.operations[0];
+  if (!op || op.type !== "payment") return null;
+  return extractRouting({
+    destination: op.destination,
+    memoType: tx.memo.type,
+    memoValue: tx.memo.value?.toString() ?? null,
+    sourceAccount: tx.source ?? null
+  });
+}
+
+// src/routing/types.ts
+function routingIdAsBigInt(routingId) {
+  if (routingId === null) {
+    return null;
+  }
+  return typeof routingId === "bigint" ? routingId : BigInt(routingId);
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  AddressParseError,
+  ExtractRoutingError,
   decodeMuxed,
   detect,
   encodeMuxed,
