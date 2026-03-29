@@ -29,6 +29,15 @@ void main() {
         switch (module) {
           case 'muxed_encode':
             final String baseG = input['base_g'].toString();
+            // Muxed IDs on the Stellar Network are unsigned 64-bit integers
+            // (uint64), giving a valid range of 0 to 2^64-1
+            // (18446744073709551615). Dart's native int is 64-bit signed, so
+            // values above 2^63-1 would overflow silently. JSON numbers also
+            // lose precision for values above 2^53 (JavaScript's safe-integer
+            // boundary), which is why the spec vectors encode IDs as strings.
+            // BigInt.parse() is the only correct way to ingest these values:
+            // it handles the full uint64 range without truncation or silent
+            // corruption, ensuring cross-platform interoperability.
             final BigInt id = BigInt.parse(input['id'].toString());
             final String result = MuxedAddress.encode(baseG: baseG, id: id);
             expect(result, expected['mAddress']);
@@ -43,6 +52,11 @@ void main() {
                   StellarAddress.parse(input['mAddress'].toString());
               expect(address.kind, AddressKind.m);
               expect(address.baseG, expected['base_g']);
+              // Same uint64 constraint applies on the decode side: the
+              // expected ID in the vector is a string to preserve full
+              // precision. BigInt.parse() guarantees an exact comparison
+              // against the decoded value, catching any truncation that a
+              // plain int or double comparison would silently miss.
               expect(address.muxedId, BigInt.parse(expected['id'].toString()));
             }
             break;
