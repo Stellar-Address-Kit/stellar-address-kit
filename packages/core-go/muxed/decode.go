@@ -2,7 +2,7 @@ package muxed
 
 import (
 	"encoding/binary"
-	"strconv"
+	"fmt"
 
 	"github.com/stellar-address-kit/core-go/address"
 )
@@ -15,7 +15,7 @@ func DecodeMuxed(mAddress string) (string, string, error) {
 
 	baseG, err := muxedAccount.AccountID()
 	if err != nil {
-		return "", "", err
+		return "", 0, err
 	}
 
 	return baseG, strconv.FormatUint(muxedAccount.ID(), 10), nil

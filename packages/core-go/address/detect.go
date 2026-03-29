@@ -18,4 +18,3 @@ func Detect(address string) string {
 	}
 	return "invalid"
 }
-

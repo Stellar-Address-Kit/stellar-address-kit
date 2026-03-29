@@ -23,12 +23,23 @@ describe("Normative Vector Tests", () => {
           } else {
             const result = decodeMuxed(c.input.mAddress);
             expect(result.baseG).toBe(c.expected.base_g);
-            expect(result.id).toBe(c.expected.id);
+            expect(result.id).toBe(BigInt(c.expected.id));
           }
           break;
         }
         case "extract_routing": {
-          // Skipping since vectors.json uses dummy addresses for this module
+          const input = c.input as any;
+          const routingInput = {
+            destination: input.destination,
+            memoType: input.memoType,
+            memoValue: input.memoValue || null,
+            sourceAccount: input.sourceAccount || null,
+          };
+          const result = extractRouting(routingInput);
+          expect(result.destinationBaseAccount).toBe(c.expected.destinationBaseAccount);
+          expect(result.routingId).toBe(c.expected.routingId);
+          expect(result.routingSource).toBe(c.expected.routingSource);
+          expect(result.warnings).toEqual(c.expected.warnings);
           break;
         }
       }

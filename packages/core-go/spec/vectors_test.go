@@ -58,10 +58,8 @@ func TestVectors(t *testing.T) {
 			case "muxed_encode":
 				baseG := tc.Input["base_g"].(string)
 				idStr := fmt.Sprintf("%v", tc.Input["id"])
-				var id uint64
-				fmt.Sscan(idStr, &id)
-				
-				res, err := muxed.EncodeMuxed(baseG, id)
+
+				res, err := muxed.EncodeMuxed(baseG, idStr)
 				if err != nil {
 					t.Fatalf("unexpected error: %v", err)
 				}
@@ -86,8 +84,8 @@ func TestVectors(t *testing.T) {
 					}
 					
 					expID := fmt.Sprintf("%v", tc.Expected["id"])
-					if id != expID {
-						t.Errorf("Expected id %s, got %s", expID, id)
+					if fmt.Sprintf("%d", id) != expID {
+						t.Errorf("Expected id %s, got %d", expID, id)
 					}
 				}
 

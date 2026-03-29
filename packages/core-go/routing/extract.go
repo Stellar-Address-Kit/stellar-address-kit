@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/stellar-address-kit/core-go/address"
+	"github.com/stellar-address-kit/core-go/muxed"
 )
 
 var digitsOnlyRegex = regexp.MustCompile(`^\d+$`)
@@ -27,6 +28,20 @@ func normalizeUnsupportedMemoType(memoType string) string {
 }
 
 func ExtractRouting(input RoutingInput) RoutingResult {
+	if input.SourceAccount != "" {
+		source, err := address.Parse(input.SourceAccount)
+		if err == nil && source.Kind == address.KindC {
+			return RoutingResult{
+				RoutingSource: "none",
+				Warnings: []address.Warning{{
+					Code:     address.WarnContractSenderDetected,
+					Severity: "info",
+					Message:  "Contract source detected. Routing state cleared.",
+				}},
+			}
+		}
+	}
+
 	parsed, err := address.Parse(input.Destination)
 	if err != nil {
 		addrErr, ok := err.(*address.AddressError)
@@ -119,6 +134,21 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 				Severity: "warn",
 				Message:  "MEMO_ID was empty, non-numeric, or exceeded uint64 max.",
 			})
+		} else {
+			normalized := strconv.FormatUint(val, 10)
+			if normalized != input.MemoValue {
+				warnings = append(warnings, address.Warning{
+					Code:     address.WarnNonCanonicalRoutingID,
+					Severity: "warn",
+					Message:  "Memo routing ID had leading zeros. Normalized to canonical decimal.",
+					Normalization: &address.Normalization{
+						Original:   input.MemoValue,
+						Normalized: normalized,
+					},
+				})
+			}
+			routingID = &val
+			routingSource = "memo"
 		}
 	} else if input.MemoType == "text" && memoValue != "" {
 		norm := NormalizeMemoTextID(memoValue)
@@ -133,7 +163,7 @@ func ExtractRouting(input RoutingInput) RoutingResult {
 				Message:  "MEMO_TEXT was not a valid numeric uint64.",
 			})
 		}
-	} else if unsupportedMemoType != "" {
+	} else if unsupportedMemoType := normalizeUnsupportedMemoType(input.MemoType); unsupportedMemoType != "" {
 		warnings = append(warnings, address.Warning{
 			Code:     address.WarnUnsupportedMemoType,
 			Severity: "warn",

@@ -1,11 +1,69 @@
-import { RoutingInput, RoutingResult } from "./types";
+import { RoutingInput, RoutingResult, Warning } from "./types";
 import { parse } from "../address/parse";
-import { decodeMuxed } from "../muxed/decode";
+import { AddressParseError } from "../address/errors";
 import { normalizeMemoTextId } from "./memo";
-import { Warning } from "../address/types";
 
+export class ExtractRoutingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ExtractRoutingError";
+    Object.setPrototypeOf(this, ExtractRoutingError.prototype);
+  }
+}
+
+/**
+ * Validates that the destination string passes the minimum structural
+ * requirements for a Stellar address before routing logic is applied.
+ * Only G-addresses and M-addresses are valid routing targets.
+ * Throws ExtractRoutingError for anything that fails this check.
+ */
+function assertRoutableAddress(destination: string): void {
+  if (!destination || typeof destination !== "string") {
+    throw new ExtractRoutingError(
+      "Invalid input: destination must be a non-empty string."
+    );
+  }
+
+  const prefix = destination.trim()[0]?.toUpperCase();
+  if (prefix !== "G" && prefix !== "M") {
+    throw new ExtractRoutingError(
+      `Invalid destination: expected a G or M address, got "${destination}".`
+    );
+  }
+}
+
+/**
+ * Extracts routing information from a given destination address and memo.
+ * 
+ * @param input - The routing input containing the destination address, memo type, and memo value.
+ * @returns The extracted routing result including destination base account, routing ID, routing source, and warnings.
+ * 
+ * Decision Branches:
+ * - M-address: The destination is parsed as a muxed account. The routing ID from the M-address takes precedence over any provided memo.
+ * - G-address with MEMO_ID: The destination is a standard G-address. The routing ID is extracted from the MEMO_ID.
+ * - G-address with MEMO_TEXT: The destination is a standard G-address. The routing ID is extracted from the MEMO_TEXT if it represents a valid numeric uint64.
+ */
 export function extractRouting(input: RoutingInput): RoutingResult {
-  const parsed = parse(input.destination);
+  assertRoutableAddress(input.destination);
+
+  let parsed;
+  try {
+    parsed = parse(input.destination);
+  } catch (error) {
+    if (error instanceof AddressParseError) {
+      return {
+        destinationBaseAccount: null,
+        routingId: null,
+        routingSource: "none",
+        warnings: [],
+        destinationError: {
+          code: error.code,
+          message: error.message,
+        },
+      };
+    }
+    throw error;
+  }
 
   if (parsed.kind === "invalid") {
     return {
@@ -13,31 +71,28 @@ export function extractRouting(input: RoutingInput): RoutingResult {
       routingId: null,
       routingSource: "none",
       warnings: [],
-      destinationError: {
-        code: parsed.error.code,
-        message: parsed.error.message,
-      },
     };
   }
 
   if (parsed.kind === "C") {
+    const warnings: Warning[] = [...parsed.warnings];
+
+    warnings.push({
+      code: "CONTRACT_SENDER_DETECTED",
+      severity: "warn",
+      message:
+        "Contract address detected. Contract addresses cannot be used as transaction senders.",
+    });
+
     return {
       destinationBaseAccount: null,
       routingId: null,
       routingSource: "none",
-      warnings: [
-        {
-          code: "INVALID_DESTINATION",
-          severity: "error",
-          message: "C address is not a valid destination",
-          context: { destinationKind: "C" },
-        },
-      ],
+      warnings,
     };
   }
 
   if (parsed.kind === "M") {
-    const { baseG, id } = decodeMuxed(parsed.address);
     const warnings: Warning[] = [...parsed.warnings];
 
     if (
@@ -60,24 +115,30 @@ export function extractRouting(input: RoutingInput): RoutingResult {
     }
 
     return {
-      destinationBaseAccount: baseG,
-      routingId: id,
+      destinationBaseAccount: parsed.baseG,
+      routingId: parsed.muxedId,
       routingSource: "muxed",
       warnings,
     };
   }
 
-  let routingId: string | null = null;
+  let routingId: string | bigint | null = null;
   let routingSource: "none" | "memo" = "none";
   const warnings: Warning[] = [...parsed.warnings];
 
   if (input.memoType === "id") {
-    const norm = normalizeMemoTextId(input.memoValue ?? "");
-    routingId = norm.normalized;
-    routingSource = norm.normalized ? "memo" : "none";
-    warnings.push(...norm.warnings);
+    const rawValue = input.memoValue ?? "";
+    const norm = normalizeMemoTextId(rawValue);
 
-    if (!norm.normalized) {
+    if (norm.normalized) {
+      // Explicit bigint parsing for MEMO_ID to avoid Number precision issues.
+      const parsedMemoId = BigInt(norm.normalized);
+      routingId = parsedMemoId.toString();
+      routingSource = "memo";
+      warnings.push(...norm.warnings);
+    } else {
+      routingSource = "none";
+      warnings.push(...norm.warnings);
       warnings.push({
         code: "MEMO_ID_INVALID_FORMAT",
         severity: "warn",
@@ -99,17 +160,15 @@ export function extractRouting(input: RoutingInput): RoutingResult {
     }
   } else if (input.memoType === "hash" || input.memoType === "return") {
     warnings.push({
-      code: "UNSUPPORTED_MEMO_TYPE",
+      code: "MEMO_TEXT_UNROUTABLE",
       severity: "warn",
       message: `Memo type ${input.memoType} is not supported for routing.`,
-      context: { memoType: input.memoType },
     });
   } else if (input.memoType !== "none") {
     warnings.push({
-      code: "UNSUPPORTED_MEMO_TYPE",
+      code: "MEMO_TEXT_UNROUTABLE",
       severity: "warn",
       message: `Unrecognized memo type: ${input.memoType}`,
-      context: { memoType: "unknown" },
     });
   }
 

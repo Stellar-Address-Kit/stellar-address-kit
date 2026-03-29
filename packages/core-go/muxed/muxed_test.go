@@ -1,77 +1,165 @@
 package muxed
 
 import (
+	"encoding/json"
+	"math"
+	"strconv"
 	"testing"
+
+	"github.com/stellar/go/keypair"
 )
 
-func TestDecodeMuxed(t *testing.T) {
-	tests := []struct {
-		name          string
-		mAddress      string
-		expectedBaseG string
-		expectedID    string
-		expectError   bool
-	}{
-		{
-			name:          "decode id=0 boundary case",
-			mAddress:      "MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQACAAAAAAAAAAAAD672",
-			expectedBaseG: "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
-			expectedID:    "0",
-		},
-		{
-			name:          "decode id=1 small positive case",
-			mAddress:      "MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQACAAAAAAAAAAAAHOO2",
-			expectedBaseG: "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
-			expectedID:    "1",
-		},
-		{
-			name:          "decode id=2^53 precision boundary",
-			mAddress:      "MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQACABAAAAAAAAAAAFZG",
-			expectedBaseG: "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
-			expectedID:    "9007199254740992",
-		},
-		{
-			name:          "decode id=2^53+1 interop canary",
-			mAddress:      "MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQACABAAAAAAAAAAEVIG",
-			expectedBaseG: "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
-			expectedID:    "9007199254740993",
-		},
-		{
-			name:          "decode id=2^64-1 max uint64",
-			mAddress:      "MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQAD7777777777774OFW",
-			expectedBaseG: "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI",
-			expectedID:    "18446744073709551615",
-		},
-		{
-			name:        "invalid M-address should return decode error",
-			mAddress:    "MZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
-			expectError: true,
-		},
+func TestEncodeDecodeMuxedIsLosslessForUint64Max(t *testing.T) {
+	kp, err := keypair.Random()
+	if err != nil {
+		t.Fatalf("keypair.Random returned error: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			baseG, id, err := DecodeMuxed(tt.mAddress)
+	baseG := kp.Address()
+	id := uint64(math.MaxUint64)
+	idStr := strconv.FormatUint(id, 10)
 
-			if tt.expectError {
-				if err == nil {
-					t.Errorf("expected error but got none")
-				}
-				return
-			}
+	encoded, err := EncodeMuxed(baseG, idStr)
+	if err != nil {
+		t.Fatalf("EncodeMuxed returned error: %v", err)
+	}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
+	decodedBaseG, decodedID, err := DecodeMuxed(encoded)
+	if err != nil {
+		t.Fatalf("DecodeMuxed returned error: %v", err)
+	}
 
-			if baseG != tt.expectedBaseG {
-				t.Errorf("expected baseG %s, got %s", tt.expectedBaseG, baseG)
-			}
+	if decodedBaseG != baseG {
+		t.Fatalf("decoded base account mismatch: got %q want %q", decodedBaseG, baseG)
+	}
 
-			if id != tt.expectedID {
-				t.Errorf("expected id %s, got %s", tt.expectedID, id)
-			}
-		})
+	if decodedID != id {
+		t.Fatalf("decoded id mismatch: got %d want %d", decodedID, id)
+	}
+}
+
+// TestEncodeMuxedWithJS53Boundary validates correct handling of 2^53 + 1 (9007199254740993),
+// which is the JavaScript precision boundary where standard JSON number formatting fails.
+// This test ensures the muxed account logic handles this boundary value safely without precision loss.
+func TestEncodeMuxedWithJS53Boundary(t *testing.T) {
+	kp, err := keypair.Random()
+	if err != nil {
+		t.Fatalf("keypair.Random returned error: %v", err)
+	}
+
+	baseG := kp.Address()
+	// 2^53 + 1 = 9007199254740993 - JavaScript precision boundary
+	boundaryID := uint64(9007199254740993)
+	boundaryIDStr := strconv.FormatUint(boundaryID, 10)
+
+	encoded, err := EncodeMuxed(baseG, boundaryIDStr)
+	if err != nil {
+		t.Fatalf("EncodeMuxed returned error: %v", err)
+	}
+
+	decodedBaseG, decodedID, err := DecodeMuxed(encoded)
+	if err != nil {
+		t.Fatalf("DecodeMuxed returned error: %v", err)
+	}
+
+	if decodedBaseG != baseG {
+		t.Fatalf("decoded base account mismatch: got %q want %q", decodedBaseG, baseG)
+	}
+
+	if decodedID != boundaryID {
+		t.Fatalf("decoded id mismatch: got %d want %d", decodedID, boundaryID)
+	}
+}
+
+// TestEncodeMuxedJSONUnmarshalWithJS53Boundary tests JSON unmarshaling with the 2^53 + 1 boundary value.
+// This test injects {"id": 9007199254740993} and verifies the value is parsed correctly and safely.
+func TestEncodeMuxedJSONUnmarshalWithJS53Boundary(t *testing.T) {
+	kp, err := keypair.Random()
+	if err != nil {
+		t.Fatalf("keypair.Random returned error: %v", err)
+	}
+
+	baseG := kp.Address()
+	// 2^53 + 1 = 9007199254740993
+	boundaryID := uint64(9007199254740993)
+
+	// Test with numeric JSON representation (breaks JS number parsing)
+	payload := struct {
+		ID uint64 `json:"id"`
+	}{
+		ID: boundaryID,
+	}
+
+	jsonBytes, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("json.Marshal returned error: %v", err)
+	}
+
+	// Unmarshal and verify
+	var decoded struct {
+		ID uint64 `json:"id"`
+	}
+	if err := json.Unmarshal(jsonBytes, &decoded); err != nil {
+		t.Fatalf("json.Unmarshal returned error: %v", err)
+	}
+
+	if decoded.ID != boundaryID {
+		t.Fatalf("decoded id mismatch: got %d want %d", decoded.ID, boundaryID)
+	}
+
+	// Verify the muxed account creation works with this ID
+	boundaryIDStr := strconv.FormatUint(boundaryID, 10)
+	encoded, err := EncodeMuxed(baseG, boundaryIDStr)
+	if err != nil {
+		t.Fatalf("EncodeMuxed returned error: %v", err)
+	}
+
+	decodedBaseG, decodedID, err := DecodeMuxed(encoded)
+	if err != nil {
+		t.Fatalf("DecodeMuxed returned error: %v", err)
+	}
+
+	if decodedBaseG != baseG {
+		t.Fatalf("decoded base account mismatch: got %q want %q", decodedBaseG, baseG)
+	}
+
+	if decodedID != boundaryID {
+		t.Fatalf("decoded id mismatch: got %d want %d", decodedID, boundaryID)
+	}
+}
+
+// TestEncodeMuxedUint64MaxRoundtrip validates round-trip encoding/decoding at the uint64 maximum boundary.
+// This test ensures that maxUint64 (18446744073709551615) preserves bit-for-bit correctness without
+// buffer overflow or precision loss during serialization and deserialization.
+func TestEncodeMuxedUint64MaxRoundtrip(t *testing.T) {
+	kp, err := keypair.Random()
+	if err != nil {
+		t.Fatalf("keypair.Random returned error: %v", err)
+	}
+
+	baseG := kp.Address()
+	maxUint64 := ^uint64(0)
+	idStr := strconv.FormatUint(maxUint64, 10)
+
+	// Round-trip: encode the max uint64 value
+	encoded, err := EncodeMuxed(baseG, idStr)
+	if err != nil {
+		t.Fatalf("EncodeMuxed with maxUint64 returned error: %v", err)
+	}
+
+	// Round-trip: decode and verify bit-for-bit correctness
+	decodedBaseG, decodedID, err := DecodeMuxed(encoded)
+	if err != nil {
+		t.Fatalf("DecodeMuxed returned error: %v", err)
+	}
+
+	// Verify base account matches exactly
+	if decodedBaseG != baseG {
+		t.Fatalf("decoded base account mismatch: got %q want %q", decodedBaseG, baseG)
+	}
+
+	// Verify ID matches exactly (bit-for-bit)
+	if decodedID != maxUint64 {
+		t.Fatalf("decoded id mismatch: got %d want %d", decodedID, maxUint64)
 	}
 }
