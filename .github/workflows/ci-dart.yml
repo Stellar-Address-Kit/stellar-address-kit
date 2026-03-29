@@ -12,5 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
+      - id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
       - run: cd packages/core-dart && dart pub get
       - run: cd packages/core-dart && dart test
+      - run: cd packages/core-dart && dart test test/web_compat --platform chrome
+        env:
+          CHROME_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
