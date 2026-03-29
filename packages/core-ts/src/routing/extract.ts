@@ -32,6 +32,17 @@ function assertRoutableAddress(destination: string): void {
   }
 }
 
+/**
+ * Extracts routing information from a given destination address and memo.
+ * 
+ * @param input - The routing input containing the destination address, memo type, and memo value.
+ * @returns The extracted routing result including destination base account, routing ID, routing source, and warnings.
+ * 
+ * Decision Branches:
+ * - M-address: The destination is parsed as a muxed account. The routing ID from the M-address takes precedence over any provided memo.
+ * - G-address with MEMO_ID: The destination is a standard G-address. The routing ID is extracted from the MEMO_ID.
+ * - G-address with MEMO_TEXT: The destination is a standard G-address. The routing ID is extracted from the MEMO_TEXT if it represents a valid numeric uint64.
+ */
 export function extractRouting(input: RoutingInput): RoutingResult {
   assertRoutableAddress(input.destination);
 
