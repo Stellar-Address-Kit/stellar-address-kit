@@ -1,4 +1,4 @@
-import { MuxedAccount, StrKey } from "@stellar/stellar-sdk";
+import { StrKey } from "@stellar/stellar-sdk";
 
 // Use BigInt literal for the 64-bit unsigned integer maximum
 const MAX_UINT64 = 18446744073709551615n;
@@ -26,9 +26,12 @@ export function encodeMuxed(baseG: string, id: bigint): string {
   }
 
   // 4. Safe Encoding
-  // We pass the string representation to MuxedAccount to avoid 
-  // any internal SDK attempts to cast a large number to a float.
-  const muxed = new MuxedAccount(baseG, id.toString());
+  // Build the 40-byte med25519 payload directly:
+  // [ed25519 pubkey (32 bytes)] [uint64 id (8 bytes, big-endian)].
+  // This avoids runtime constructor-contract drift in MuxedAccount across SDK versions.
+  const pubkeyBytes = Buffer.from(StrKey.decodeEd25519PublicKey(baseG));
+  const idBytes = Buffer.alloc(8);
+  idBytes.writeBigUInt64BE(id);
 
-  return muxed.accountId();
+  return StrKey.encodeMed25519PublicKey(Buffer.concat([pubkeyBytes, idBytes]));
 }
