@@ -2,6 +2,8 @@ import '../address/detect.dart';
 import '../address/codes.dart';
 import '../exceptions.dart';
 import '../util/strkey.dart';
+import 'decode.dart';
+import 'decoded_muxed_address.dart';
 import 'encode.dart';
 
 /// Class for handling Stellar Muxed Addresses (M... addresses).
@@ -14,6 +16,9 @@ import 'encode.dart';
 ///
 /// If you need to serialize IDs for web usage, treat them as strings and
 /// apply appropriate conversion logic to maintain full 64-bit range correctness.
+///
+/// For Flutter web guidance and BigInt caveats, see
+/// [flutter-web-bigint.md](../../../../docs/guides/flutter-web-bigint.md).
 class MuxedAddress {
   static String encode({required String baseG, required BigInt id}) {
     final uint64Max = BigInt.parse('18446744073709551615');
@@ -26,6 +31,15 @@ class MuxedAddress {
     }
 
     return MuxedEncoder.encodeMuxed(_decodeG(baseG), id);
+  }
+
+  static DecodedMuxedAddress decode(String mAddress) {
+    try {
+      return MuxedDecoder.decodeMuxedString(mAddress);
+    } catch (e) {
+      if (e is StellarAddressException) rethrow;
+      throw StellarAddressException('Failed to decode M address: $e');
+    }
   }
 
   static List<int> _decodeG(String g) {

@@ -84,8 +84,8 @@ func TestVectors(t *testing.T) {
 					}
 					
 					expID := fmt.Sprintf("%v", tc.Expected["id"])
-					if id != expID {
-						t.Errorf("Expected id %s, got %s", expID, id)
+					if fmt.Sprintf("%d", id) != expID {
+						t.Errorf("Expected id %s, got %d", expID, id)
 					}
 				}
 

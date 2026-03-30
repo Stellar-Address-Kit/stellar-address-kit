@@ -6,3 +6,9 @@ type ParseResult struct {
 	Warnings []Warning
 	Err      *AddressError
 }
+
+type AddressError struct {
+	Code    ErrorCode
+	Input   string
+	Message string
+}

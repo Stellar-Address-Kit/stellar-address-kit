@@ -5,6 +5,22 @@ import 'result.dart';
 import 'memo.dart';
 
 RoutingResult extractRouting(RoutingInput input) {
+  if (input.sourceAccount != null && input.sourceAccount!.isNotEmpty) {
+    final source = parse(input.sourceAccount!);
+    if (source.kind == AddressKind.c) {
+      return RoutingResult(
+        routingSource: RoutingSource.none,
+        warnings: [
+          Warning(
+            code: WarningCode.contractSenderDetected,
+            severity: 'info',
+            message: 'Contract source detected. Routing state cleared.',
+          ),
+        ],
+      );
+    }
+  }
+
   final parsed = parse(input.destination);
 
   if (parsed.kind == null) {
