@@ -160,9 +160,7 @@ describe("parse", () => {
   describe("error cases", () => {
     it("should throw AddressParseError for address with unknown prefix", () => {
       const invalidAddress = "INVALID_ADDRESS";
-      expect(() => parse(invalidAddress)).toThrowError(
-        /AddressParseError/
-      );
+      expect(() => parse(invalidAddress)).toThrowError(AddressParseError);
 
       try {
         parse(invalidAddress);

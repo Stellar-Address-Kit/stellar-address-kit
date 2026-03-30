@@ -151,7 +151,10 @@ describe("encodeMuxed → extractRouting integration pipeline", () => {
     });
 
     it("the conflicting memo value does not leak into the result", () => {
-      expect(JSON.stringify(result)).not.toContain("99999");
+      const serialized = JSON.stringify(result, (_, value) =>
+        typeof value === "bigint" ? value.toString() : value,
+      );
+      expect(serialized).not.toContain("99999");
     });
   });
 

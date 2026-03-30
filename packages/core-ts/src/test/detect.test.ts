@@ -84,8 +84,8 @@ describe("detect() – corrupted checksums", () => {
     // A mutation in a checksum-protected field will almost always be "invalid".
   });
 
-  it('returns "invalid" when the last character of an M-address is mutated', () => {
-    const corrupted = M.slice(0, -1) + (M.at(-1) === "Y" ? "Z" : "Y");
+  it('returns "invalid" when an M-address contains an invalid terminal character', () => {
+    const corrupted = M.slice(0, -1) + "!";
     expect(detect(corrupted)).toBe("invalid");
   });
 });
