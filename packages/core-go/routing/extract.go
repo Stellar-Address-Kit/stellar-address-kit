@@ -27,6 +27,10 @@ func normalizeUnsupportedMemoType(memoType string) string {
 	}
 }
 
+// ExtractRouting identifies the deposit routing destination and identifier from a Stellar 
+// payment input. It implements the standard priority policy where M-address identifiers 
+// take precedence over any provided memo. Returns a RoutingResult with the decoded 
+// state and applicable warnings.
 func ExtractRouting(input RoutingInput) RoutingResult {
 	if input.SourceAccount != "" {
 		source, err := address.Parse(input.SourceAccount)

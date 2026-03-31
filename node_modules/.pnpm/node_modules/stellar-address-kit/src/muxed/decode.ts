@@ -2,6 +2,10 @@ import { StrKey } from "@stellar/stellar-sdk";
 
 const BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
+/**
+ * Decodes a Base32-encoded string into binary data.
+ * @internal
+ */
 function decodeBase32(input: string): Uint8Array {
   const s = input.toUpperCase().replace(/=+$/, "");
   const byteCount = Math.floor((s.length * 5) / 8);
@@ -24,6 +28,10 @@ function decodeBase32(input: string): Uint8Array {
   return result;
 }
 
+/**
+ * Computes a 16-bit CRC (CCITT-FALSE).
+ * @internal
+ */
 function crc16(bytes: Uint8Array): number {
   let crc = 0;
   for (const byte of bytes) {
@@ -35,6 +43,10 @@ function crc16(bytes: Uint8Array): number {
   return crc & 0xffff;
 }
 
+/**
+ * Validates and decodes a Stellar StrKey string.
+ * @internal
+ */
 function decodeStrKey(address: string): Uint8Array {
   const up = address.toUpperCase();
   const decoded = decodeBase32(up);
@@ -50,15 +62,14 @@ function decodeStrKey(address: string): Uint8Array {
 }
 
 /**
- * Decodes a muxed Stellar address into its base G address and numeric ID.
- * Returns a typed structure to ensure native TypeScript protection and clean destructuring.
+ * Decodes a muxed Stellar address (SEP-23) into its base account and ID.
+ * The payload is expected to be [Version(1)] [Pubkey(32)] [ID(8)].
  * 
- * @param mAddress The muxed Stellar address (starts with M).
- * @returns An object containing the base G address and the 64-bit ID as a bigint.
+ * @param mAddress - The muxed address string starting with 'M'.
+ * @returns Metadata containing the base G address and the 64-bit BigInt ID.
  */
 export function decodeMuxed(mAddress: string): { baseG: string; id: bigint } {
   const data = decodeStrKey(mAddress);
-  // Layout for Muxed Address: [Version(1)] [Pubkey(32)] [ID(8)]
   if (data.length !== 41) throw new Error("invalid payload length");
 
   const pubkey = data.slice(1, 33);

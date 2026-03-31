@@ -8,6 +8,10 @@ export type ErrorCode =
   | "FEDERATION_ADDRESS_NOT_SUPPORTED"
   | "UNKNOWN_PREFIX";
 
+/**
+ * Represents an error encountered during the parsing of a Stellar address.
+ * Includes a machine-readable ErrorCode and the original input string.
+ */
 export class AddressParseError extends Error {
   code: ErrorCode;
   readonly input: string;

@@ -1,6 +1,4 @@
-import 'package:stellar_address_kit/stellar_address_kit.dart';
-import '../lib/src/util/strkey.dart';
-import 'dart:typed_data';
+import 'package:stellar_address_kit/src/util/strkey.dart';
 
 void main() {
   const m =

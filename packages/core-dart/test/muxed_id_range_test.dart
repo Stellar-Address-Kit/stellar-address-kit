@@ -17,6 +17,7 @@
 ///
 /// These tests MUST PASS on both unfixed and fixed code — they capture the
 /// baseline behavior that the fix must not regress.
+library;
 
 import 'package:test/test.dart';
 import 'package:stellar_address_kit/stellar_address_kit.dart';
@@ -27,18 +28,21 @@ void main() {
 
   final uint64Max = BigInt.parse('18446744073709551615');
 
-  group('MuxedAddress.encode — out-of-range id (bug condition exploration)', () {
+  group('MuxedAddress.encode — out-of-range id (bug condition exploration)',
+      () {
     /// Validates: Requirements 1.1, 1.2
     test('throws StellarAddressException for id = -1 (negative)', () {
       expect(
         () => MuxedAddress.encode(baseG: validG, id: BigInt.from(-1)),
         throwsA(isA<StellarAddressException>()),
-        reason: 'encode(validG, -1) should throw but returns a String on unfixed code',
+        reason:
+            'encode(validG, -1) should throw but returns a String on unfixed code',
       );
     });
 
     /// Validates: Requirements 1.2
-    test('throws StellarAddressException for id = 2^64 (one above uint64Max)', () {
+    test('throws StellarAddressException for id = 2^64 (one above uint64Max)',
+        () {
       expect(
         () => MuxedAddress.encode(
           baseG: validG,
@@ -51,7 +55,9 @@ void main() {
     });
 
     /// Validates: Requirements 1.1
-    test('throws StellarAddressException for id = -9999999999999999999 (large negative)', () {
+    test(
+        'throws StellarAddressException for id = -9999999999999999999 (large negative)',
+        () {
       expect(
         () => MuxedAddress.encode(
           baseG: validG,
@@ -90,14 +96,14 @@ void main() {
     // Representative valid ids covering lower boundary, upper boundary, and
     // several mid-range values.
     final validIds = <BigInt>[
-      BigInt.zero,                                    // lower boundary (req 3.1)
-      BigInt.one,                                     // just above zero
-      BigInt.from(1000),                              // small mid-range
-      BigInt.parse('9223372036854775807'),             // int64 max (mid-range)
-      BigInt.parse('9223372036854775808'),             // int64 max + 1
-      BigInt.parse('12345678901234567890'),            // large mid-range
-      uint64Max - BigInt.one,                         // one below upper boundary
-      uint64Max,                                      // upper boundary (req 3.3)
+      BigInt.zero, // lower boundary (req 3.1)
+      BigInt.one, // just above zero
+      BigInt.from(1000), // small mid-range
+      BigInt.parse('9223372036854775807'), // int64 max (mid-range)
+      BigInt.parse('9223372036854775808'), // int64 max + 1
+      BigInt.parse('12345678901234567890'), // large mid-range
+      uint64Max - BigInt.one, // one below upper boundary
+      uint64Max, // upper boundary (req 3.3)
     ];
 
     /// Validates: Requirements 3.1, 3.2, 3.3
@@ -115,24 +121,29 @@ void main() {
     /// Validates: Requirement 3.4
     /// encode with an invalid baseG must throw StellarAddressException for the
     /// base address, regardless of the id value.
-    test('encode(invalidG, validId) throws StellarAddressException for invalid base', () {
+    test(
+        'encode(invalidG, validId) throws StellarAddressException for invalid base',
+        () {
       const invalidG = 'INVALID_ADDRESS';
       expect(
         () => MuxedAddress.encode(baseG: invalidG, id: BigInt.from(42)),
         throwsA(isA<StellarAddressException>()),
-        reason: 'encode with an invalid G-address must throw StellarAddressException',
+        reason:
+            'encode with an invalid G-address must throw StellarAddressException',
       );
     });
 
     /// Validates: Requirement 3.4 — also check with a well-formed but wrong-type address
-    test('encode(M-address as baseG, validId) throws StellarAddressException', () {
+    test('encode(M-address as baseG, validId) throws StellarAddressException',
+        () {
       // An M-address is not a valid baseG
       const mAddress =
           'MAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQACAAAAAAAAAAAAD672';
       expect(
         () => MuxedAddress.encode(baseG: mAddress, id: BigInt.zero),
         throwsA(isA<StellarAddressException>()),
-        reason: 'encode with an M-address as baseG must throw StellarAddressException',
+        reason:
+            'encode with an M-address as baseG must throw StellarAddressException',
       );
     });
   });

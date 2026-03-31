@@ -5,10 +5,9 @@ import (
 	"strings"
 )
 
-// Parse parses a Stellar address into an Address struct.
-//
-// For muxed accounts (M-addresses), BaseG and MuxedID are populated.
-// For other kinds, BaseG will be empty and MuxedID will be zero.
+// Parse parses a Stellar address string into an Address struct.
+// For muxed accounts (KindM), BaseG and MuxedID are populated; for other kinds,
+// these fields will be empty/zero. Returns an AddressError if validation fails.
 func Parse(input string) (*Address, error) {
 	kind, err := Detect(input)
 	if err != nil {

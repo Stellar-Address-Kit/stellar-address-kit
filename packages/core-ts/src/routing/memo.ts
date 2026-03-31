@@ -5,8 +5,18 @@ export type NormalizeResult = {
   warnings: Warning[];
 };
 
+/**
+ * Maximum value for a 64-bit unsigned integer (uint64).
+ */
 const UINT64_MAX = BigInt("18446744073709551615");
 
+/**
+ * Normalizes a numeric string into a canonical uint64 representation.
+ * Strips leading zeros and validates that the value is within uint64 boundaries.
+ * 
+ * @param s - The numeric string to normalize.
+ * @returns Result containing the normalized string (or null if invalid) and any warnings.
+ */
 export function normalizeMemoTextId(s: string): NormalizeResult {
   const warnings: Warning[] = [];
 

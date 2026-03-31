@@ -4,6 +4,9 @@ import '../muxed/decode.dart';
 import 'result.dart';
 import 'memo.dart';
 
+/// Extracts deposit routing information from a Stellar payment input.
+/// Following the standard priority policy, M-address identifiers take
+/// precedence over any provided memo.
 RoutingResult extractRouting(RoutingInput input) {
   if (input.sourceAccount != null && input.sourceAccount!.isNotEmpty) {
     final source = parse(input.sourceAccount!);

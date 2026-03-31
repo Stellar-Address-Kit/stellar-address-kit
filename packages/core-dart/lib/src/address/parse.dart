@@ -1,6 +1,9 @@
 import 'detect.dart';
 import 'codes.dart';
 
+/// Parses a [String] into a [ParseResult].
+/// Normalizes the input to uppercase and returns any applicable warnings 
+/// or errors if the format is unrecognized.
 ParseResult parse(String input) {
   final kind = detect(input);
   if (kind == null) {
