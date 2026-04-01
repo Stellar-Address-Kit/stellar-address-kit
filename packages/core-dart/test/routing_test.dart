@@ -28,8 +28,8 @@ void main() {
   group('RoutingResult.toDisplayString', () {
     test('muxed source formats with routing ID and base account', () {
       final result = RoutingResult(
-        routingSource: RoutingSource.muxed,
-        routingId: '12345',
+        source: RoutingSource.muxed,
+        id: BigInt.from(12345),
         destinationBaseAccount: 'GABC123',
         warnings: [],
       );
@@ -41,7 +41,7 @@ void main() {
 
     test('muxed source handles null values gracefully', () {
       final result = RoutingResult(
-        routingSource: RoutingSource.muxed,
+        source: RoutingSource.muxed,
         warnings: [],
       );
       expect(
@@ -52,8 +52,8 @@ void main() {
 
     test('memo source formats with routing ID', () {
       final result = RoutingResult(
-        routingSource: RoutingSource.memo,
-        routingId: '99999',
+        source: RoutingSource.memo,
+        id: BigInt.from(99999),
         warnings: [],
       );
       expect(
@@ -64,7 +64,7 @@ void main() {
 
     test('memo source handles null values gracefully', () {
       final result = RoutingResult(
-        routingSource: RoutingSource.memo,
+        source: RoutingSource.memo,
         warnings: [],
       );
       expect(
@@ -75,7 +75,7 @@ void main() {
 
     test('none source formats as no routing', () {
       final result = RoutingResult(
-        routingSource: RoutingSource.none,
+        source: RoutingSource.none,
         warnings: [],
       );
       expect(

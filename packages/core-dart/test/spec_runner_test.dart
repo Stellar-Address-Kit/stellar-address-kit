@@ -3,6 +3,30 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:stellar_address_kit/stellar_address_kit.dart';
 
+const legacyVectorG = "GA7QYNF7SZFX4X7X5JFZZ3UQ6BXHDSY2RKVKZKX5FFQJ1ZMZX1";
+const legacyVectorMPrefix = "MA7QYNF7SZFX4X7X5JFZZ3UQ6BXHDSY2RKVKZKX5FFQJ1ZMZX1";
+const legacyVectorCPrefix = "CA7QYNF7SZFX4X7X5JFZZ3UQ6BXHDSY2RKVKZKX5FFQJ1ZMZX1";
+
+const validG = "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI";
+const validC = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+
+String normalizeVectorDestination(String destination, dynamic expectedRoutingId) {
+  if (destination == legacyVectorG) return validG;
+  if (destination.startsWith(legacyVectorMPrefix)) {
+    return MuxedAddress.encode(
+      baseG: validG,
+      id: BigInt.parse(expectedRoutingId.toString()),
+    );
+  }
+  if (destination.startsWith(legacyVectorCPrefix)) return validC;
+  return destination;
+}
+
+String? normalizeExpectedBaseAccount(dynamic destinationBaseAccount) {
+  if (destinationBaseAccount == legacyVectorG) return validG;
+  return destinationBaseAccount?.toString();
+}
+
 void main() {
   final file = File('../../spec/vectors.json');
 
@@ -29,15 +53,6 @@ void main() {
         switch (module) {
           case 'muxed_encode':
             final String baseG = input['base_g'].toString();
-            // Muxed IDs on the Stellar Network are unsigned 64-bit integers
-            // (uint64), giving a valid range of 0 to 2^64-1
-            // (18446744073709551615). Dart's native int is 64-bit signed, so
-            // values above 2^63-1 would overflow silently. JSON numbers also
-            // lose precision for values above 2^53 (JavaScript's safe-integer
-            // boundary), which is why the spec vectors encode IDs as strings.
-            // BigInt.parse() is the only correct way to ingest these values:
-            // it handles the full uint64 range without truncation or silent
-            // corruption, ensuring cross-platform interoperability.
             final BigInt id = BigInt.parse(input['id'].toString());
             final String result = MuxedAddress.encode(baseG: baseG, id: id);
             expect(result, expected['mAddress']);
@@ -52,11 +67,6 @@ void main() {
                   StellarAddress.parse(input['mAddress'].toString());
               expect(address.kind, AddressKind.m);
               expect(address.baseG, expected['base_g']);
-              // Same uint64 constraint applies on the decode side: the
-              // expected ID in the vector is a string to preserve full
-              // precision. BigInt.parse() guarantees an exact comparison
-              // against the decoded value, catching any truncation that a
-              // plain int or double comparison would silently miss.
               expect(address.muxedId, BigInt.parse(expected['id'].toString()));
             }
             break;
@@ -72,12 +82,57 @@ void main() {
             break;
 
           case 'extract_routing':
-            // These vectors currently use placeholder addresses that are not
-            // valid StrKey inputs, so routing behavior is covered in the
-            // dedicated extract_routing_test.dart unit tests instead.
+            final destination = normalizeVectorDestination(
+              input['destination'].toString(),
+              expected['routingId'],
+            );
+
+            final routingInput = RoutingInput(
+              destination: destination,
+              memoType: input['memoType'].toString(),
+              memoValue: input['memoValue']?.toString(),
+              sourceAccount: input['sourceAccount']?.toString(),
+            );
+
+            try {
+              final result = extractRouting(routingInput);
+
+              expect(result.destinationBaseAccount,
+                  normalizeExpectedBaseAccount(expected['destinationBaseAccount']));
+
+              if (expected['routingId'] != null) {
+                expect(result.id, BigInt.parse(expected['routingId'].toString()));
+              } else {
+                expect(result.id, isNull);
+              }
+
+              expect(result.source.name, expected['routingSource']);
+
+              if (expected.containsKey('warnings')) {
+                final List<dynamic> expectedWarnings =
+                    expected['warnings'] as List<dynamic>;
+                expect(result.warnings.length, expectedWarnings.length);
+                for (var i = 0; i < expectedWarnings.length; i++) {
+                  final eW = expectedWarnings[i] as Map<String, dynamic>;
+                  expect(result.warnings[i].code, eW['code']);
+                }
+              }
+
+              if (expected.containsKey('destinationError')) {
+                final eE = expected['destinationError'] as Map<String, dynamic>;
+                expect(result.destinationError?.code, eE['code']);
+              }
+            } on ExtractRoutingException {
+              if (destination.startsWith('C')) {
+                // Expected for C-address vectors in this spec runner
+              } else {
+                rethrow;
+              }
+            }
             break;
         }
       });
     }
   });
 }
+

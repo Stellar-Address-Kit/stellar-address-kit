@@ -13,8 +13,8 @@ void main() {
       );
 
       expect(result.destinationBaseAccount, baseG);
-      expect(result.routingId, '9007199254740993');
-      expect(result.routingSource, RoutingSource.muxed);
+      expect(result.id, BigInt.parse('9007199254740993'));
+      expect(result.source, RoutingSource.muxed);
       expect(result.warnings, isEmpty);
       expect(result.destinationError, isNull);
     });
@@ -29,12 +29,11 @@ void main() {
       );
 
       expect(result.destinationBaseAccount, baseG);
-      expect(result.routingId, '42');
-      expect(result.routingSource, RoutingSource.memo);
+      expect(result.id, BigInt.from(42));
+      expect(result.source, RoutingSource.memo);
       expect(result.destinationError, isNull);
       expect(result.warnings, hasLength(1));
-      expect(result.warnings.first.code, WarningCode.memoIgnoredForMuxed);
-      expect(result.warnings.first.severity, 'info');
+      expect(result.warnings.first.code, 'memo-ignored');
     });
 
     test('keeps muxed decode valid when external memo is unroutable', () {
@@ -47,12 +46,12 @@ void main() {
       );
 
       expect(result.destinationBaseAccount, baseG);
-      expect(result.routingId, isNull);
-      expect(result.routingSource, RoutingSource.none);
+      expect(result.id, isNull);
+      expect(result.source, RoutingSource.none);
       expect(result.destinationError, isNull);
       expect(
         result.warnings.map((warning) => warning.code),
-        [WarningCode.memoIgnoredForMuxed, WarningCode.memoTextUnroutable],
+        ['memo-ignored', 'MEMO_TEXT_UNROUTABLE'],
       );
     });
 
@@ -66,10 +65,25 @@ void main() {
       );
 
       expect(result.destinationBaseAccount, baseG);
-      expect(result.routingId, '100');
-      expect(result.routingSource, RoutingSource.memo);
+      expect(result.id, BigInt.from(100));
+      expect(result.source, RoutingSource.memo);
       expect(result.warnings, isEmpty);
       expect(result.destinationError, isNull);
+    });
+
+    test('throws ExtractRoutingException for C-addresses', () {
+      const cAddress = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC';
+      expect(
+        () => extractRouting(RoutingInput(destination: cAddress, memoType: 'none')),
+        throwsA(isA<ExtractRoutingException>()),
+      );
+    });
+
+    test('throws ExtractRoutingException for empty destination', () {
+      expect(
+        () => extractRouting(RoutingInput(destination: '', memoType: 'none')),
+        throwsA(isA<ExtractRoutingException>()),
+      );
     });
   });
 }

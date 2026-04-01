@@ -1,26 +1,36 @@
+import '../address/codes.dart' as codes;
 import '../address/parse.dart';
-import '../address/codes.dart';
 import '../muxed/decode.dart';
-import 'result.dart';
+import 'routing_result.dart';
 import 'memo.dart';
 
 /// Extracts deposit routing information from a Stellar payment input.
 /// Following the standard priority policy, M-address identifiers take
 /// precedence over any provided memo.
 RoutingResult extractRouting(RoutingInput input) {
+  final trimmed = input.destination.trim();
+  if (trimmed.isEmpty) {
+    throw const ExtractRoutingException('Invalid input: destination must be a non-empty string.');
+  }
+
+  final prefix = trimmed[0].toUpperCase();
+  if (prefix != 'G' && prefix != 'M') {
+    throw ExtractRoutingException(
+      'Invalid destination: expected a G or M address, got "${input.destination}".',
+    );
+  }
+
   if (input.sourceAccount != null && input.sourceAccount!.isNotEmpty) {
-    final source = parse(input.sourceAccount!);
-    if (source.kind == AddressKind.c) {
-      return RoutingResult(
-        routingSource: RoutingSource.none,
-        warnings: [
-          Warning(
-            code: WarningCode.contractSenderDetected,
-            severity: 'info',
-            message: 'Contract source detected. Routing state cleared.',
-          ),
-        ],
-      );
+    try {
+      final source = parse(input.sourceAccount!);
+      if (source.kind == codes.AddressKind.c) {
+        return RoutingResult(
+          source: RoutingSource.none,
+          warnings: [RoutingWarning.contractSender],
+        );
+      }
+    } catch (_) {
+      // Ignore source account parsing errors for routing extraction
     }
   }
 
@@ -28,172 +38,181 @@ RoutingResult extractRouting(RoutingInput input) {
 
   if (parsed.kind == null) {
     return RoutingResult(
-      routingSource: RoutingSource.none,
+      source: RoutingSource.none,
       warnings: [],
-      destinationError: DestinationError(
-        code: parsed.error!.code,
-        message: parsed.error!.message,
-      ),
+      destinationError: parsed.error != null
+          ? DestinationError(
+              code: parsed.error!.code,
+              message: parsed.error!.message,
+            )
+          : null,
     );
   }
 
-  if (parsed.kind == AddressKind.c) {
-    return RoutingResult(
-      routingSource: RoutingSource.none,
-      warnings: [
-        Warning(
-          code: WarningCode.invalidDestination,
-          severity: 'error',
-          message: 'C address is not a valid destination',
-          context: WarningContext(destinationKind: 'C'),
-        ),
-      ],
-    );
+  final warnings = <RoutingWarning>[];
+  for (final w in parsed.warnings) {
+    warnings.add(RoutingWarning(
+      code: w.code,
+      severity: w.severity,
+      message: w.message,
+    ));
   }
 
-  if (parsed.kind == AddressKind.m) {
-    final warnings = List<Warning>.from(parsed.warnings);
+  if (parsed.kind == codes.AddressKind.m) {
     final decoded = MuxedDecoder.decodeMuxedString(parsed.address);
     final baseG = decoded.baseG;
-    final muxedId = decoded.id.toString();
+    final muxedId = decoded.id;
 
     if (input.memoType == 'none') {
       return RoutingResult(
         destinationBaseAccount: baseG,
-        routingId: muxedId,
-        routingSource: RoutingSource.muxed,
+        id: muxedId,
+        source: RoutingSource.muxed,
         warnings: warnings,
       );
     }
 
-    String? routingId;
+    BigInt? routingId;
     RoutingSource routingSource = RoutingSource.none;
 
-    warnings.add(
-      Warning(
-        code: WarningCode.memoIgnoredForMuxed,
-        severity: 'info',
-        message:
-            'Memo present with M-address. M-address routing ID is ignored in favor of the provided memo.',
-      ),
-    );
+    warnings.add(RoutingWarning.memoIgnored);
 
     if (input.memoType == 'id') {
       final norm = normalizeMemoId(input.memoValue ?? '');
-      routingId = norm.normalized;
       if (norm.normalized != null) {
+        routingId = BigInt.parse(norm.normalized!);
         routingSource = RoutingSource.memo;
       } else {
         warnings.add(
-          Warning(
-            code: WarningCode.memoIdInvalidFormat,
+          const RoutingWarning(
+            code: codes.WarningCode.memoIdInvalidFormat,
             severity: 'warn',
             message: 'MEMO_ID was empty, non-numeric, or exceeded uint64 max.',
           ),
         );
       }
-      warnings.addAll(norm.warnings);
+      for (final w in norm.warnings) {
+        warnings.add(RoutingWarning(
+          code: w.code,
+          severity: w.severity,
+          message: w.message,
+        ));
+      }
     } else if (input.memoType == 'text' && input.memoValue != null) {
       final norm = normalizeMemoTextId(input.memoValue!);
       if (norm.normalized != null) {
-        routingId = norm.normalized;
+        routingId = BigInt.parse(norm.normalized!);
         routingSource = RoutingSource.memo;
-        warnings.addAll(norm.warnings);
       } else {
         warnings.add(
-          Warning(
-            code: WarningCode.memoTextUnroutable,
+          const RoutingWarning(
+            code: codes.WarningCode.memoTextUnroutable,
             severity: 'warn',
             message: 'MEMO_TEXT was not a valid numeric uint64.',
           ),
         );
       }
+      for (final w in norm.warnings) {
+        warnings.add(RoutingWarning(
+          code: w.code,
+          severity: w.severity,
+          message: w.message,
+        ));
+      }
     } else if (input.memoType == 'hash' || input.memoType == 'return') {
       warnings.add(
-        Warning(
-          code: WarningCode.unsupportedMemoType,
+        RoutingWarning(
+          code: codes.WarningCode.unsupportedMemoType,
           severity: 'warn',
           message: 'Memo type ${input.memoType} is not supported for routing.',
-          context: WarningContext(memoType: input.memoType),
         ),
       );
     } else {
       warnings.add(
-        Warning(
-          code: WarningCode.unsupportedMemoType,
+        const RoutingWarning(
+          code: codes.WarningCode.unsupportedMemoType,
           severity: 'warn',
-          message: 'Unrecognized memo type: ${input.memoType}',
-          context: WarningContext(memoType: 'unknown'),
+          message: 'Unrecognized memo type: unknown',
         ),
       );
     }
 
     return RoutingResult(
       destinationBaseAccount: baseG,
-      routingId: routingId,
-      routingSource: routingSource,
+      id: routingId,
+      source: routingSource,
       warnings: warnings,
     );
   }
 
-  String? routingId;
+  BigInt? routingId;
   RoutingSource routingSource = RoutingSource.none;
-  final warnings = List<Warning>.from(parsed.warnings);
 
   if (input.memoType == 'id') {
     final norm = normalizeMemoId(input.memoValue ?? '');
     if (norm.normalized != null) {
-      routingId = norm.normalized;
+      routingId = BigInt.parse(norm.normalized!);
       routingSource = RoutingSource.memo;
     } else {
       warnings.add(
-        Warning(
-          code: WarningCode.memoIdInvalidFormat,
+        const RoutingWarning(
+          code: codes.WarningCode.memoIdInvalidFormat,
           severity: 'warn',
           message: 'MEMO_ID was empty, non-numeric, or exceeded uint64 max.',
         ),
       );
     }
-    warnings.addAll(norm.warnings);
+    for (final w in norm.warnings) {
+      warnings.add(RoutingWarning(
+        code: w.code,
+        severity: w.severity,
+        message: w.message,
+      ));
+    }
   } else if (input.memoType == 'text' && input.memoValue != null) {
     final norm = normalizeMemoTextId(input.memoValue!);
     if (norm.normalized != null) {
-      routingId = norm.normalized;
+      routingId = BigInt.parse(norm.normalized!);
       routingSource = RoutingSource.memo;
-      warnings.addAll(norm.warnings);
     } else {
       warnings.add(
-        Warning(
-          code: WarningCode.memoTextUnroutable,
+        const RoutingWarning(
+          code: codes.WarningCode.memoTextUnroutable,
           severity: 'warn',
           message: 'MEMO_TEXT was not a valid numeric uint64.',
         ),
       );
     }
+    for (final w in norm.warnings) {
+      warnings.add(RoutingWarning(
+        code: w.code,
+        severity: w.severity,
+        message: w.message,
+      ));
+    }
   } else if (input.memoType == 'hash' || input.memoType == 'return') {
     warnings.add(
-      Warning(
-        code: WarningCode.unsupportedMemoType,
+      RoutingWarning(
+        code: codes.WarningCode.unsupportedMemoType,
         severity: 'warn',
         message: 'Memo type ${input.memoType} is not supported for routing.',
-        context: WarningContext(memoType: input.memoType),
       ),
     );
   } else if (input.memoType != 'none') {
     warnings.add(
-      Warning(
-        code: WarningCode.unsupportedMemoType,
+      const RoutingWarning(
+        code: codes.WarningCode.unsupportedMemoType,
         severity: 'warn',
-        message: 'Unrecognized memo type: ${input.memoType}',
-        context: WarningContext(memoType: 'unknown'),
+        message: 'Unrecognized memo type: unknown',
       ),
     );
   }
 
   return RoutingResult(
     destinationBaseAccount: parsed.address,
-    routingId: routingId,
-    routingSource: routingSource,
+    id: routingId,
+    source: routingSource,
     warnings: warnings,
   );
 }
+
