@@ -77,10 +77,12 @@ export function extractRouting(input: RoutingInput): RoutingResult {
     const warnings: Warning[] = [...parsed.warnings];
 
     warnings.push({
-      code: "CONTRACT_SENDER_DETECTED",
-      severity: "warn",
-      message:
-        "Contract address detected. Contract addresses cannot be used as transaction senders.",
+      code: "INVALID_DESTINATION",
+      severity: "error",
+      message: "C address is not a valid destination",
+      context: {
+        destinationKind: "C",
+      },
     });
 
     return {
