@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  listener:
+    build:
+      context: ../../
+      dockerfile: examples/go-payment-listener/Dockerfile
+    environment:
+      - HORIZON_TARGET_ACCOUNT=${TARGET_ACCOUNT:-GA7QYNF7SOWQ3GLR2B6RS22TBGZAOR6KLYH4PA5ZAM73A3H4K2HZZSQU}
+    ports:
+      - "9090:9090"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9090"
+
+volumes:
+  prometheus_data:

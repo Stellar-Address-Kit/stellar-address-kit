@@ -1,0 +1,10 @@
+horizon:
+  url: "https://horizon-testnet.stellar.org"
+  target_account: "GD3PGRUASZV6MS3EUVUAUXPUJAXKLBZH37S5B3RBO4IP27MT6CTFT7WF"
+  start_cursor: "now"
+logging:
+  level: "info"
+  format: "json"
+metrics:
+  enabled: true
+  port: 9090
