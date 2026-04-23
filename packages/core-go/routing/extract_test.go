@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stellar-address-kit/core-go/address"
+	"github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/address"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stellar-address-kit/core-go/address"
-	"github.com/stellar-address-kit/core-go/muxed"
+	"github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/address"
+	"github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/muxed"
 )
 
 var digitsOnlyRegex = regexp.MustCompile(`^\d+$`)

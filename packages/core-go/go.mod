@@ -1,4 +1,4 @@
-module github.com/stellar-address-kit/core-go
+module github.com/Boxkit-Labs/stellar-address-kit/packages/core-go
 
 go 1.22
 

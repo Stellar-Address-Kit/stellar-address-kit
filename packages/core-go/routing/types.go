@@ -1,6 +1,6 @@
 package routing
 
-import "github.com/stellar-address-kit/core-go/address"
+import "github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/address"
 
 // RoutingInput represents incoming routing payload data.
 type RoutingInput struct {
