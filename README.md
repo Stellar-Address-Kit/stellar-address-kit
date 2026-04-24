@@ -1,7 +1,32 @@
-# stellar-address-kit
-The deposit routing & address interop spec for Stellar (G/M/C + memos). Implemented across TypeScript, Go, and Dart.
+<p align="center">
+  <img src="stellar_address_kit_logo_1777022090492.png" width="220" alt="Stellar Address Kit Logo" />
+</p>
 
-Not an SDK replacement but instead an application-layer routing logic the SDK (Stellar SDK) does not provide; built on top of it. It's specified in `spec/vectors.json`, and validated identically across all three language implementations (Go, Dart, TypeScript).
+<h1 align="center">Stellar Address Kit</h1>
+
+<p align="center">
+  <a href="https://github.com/Boxkit-Labs/stellar-address-kit/actions"><img src="https://github.com/Boxkit-Labs/stellar-address-kit/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://pub.dev/packages/stellar_address_kit"><img src="https://img.shields.io/pub/v/stellar_address_kit.svg" alt="Pub.dev"></a>
+  <a href="https://www.npmjs.com/package/stellar-address-kit"><img src="https://img.shields.io/npm/v/stellar-address-kit.svg" alt="NPM"></a>
+  <a href="https://pkg.go.dev/github.com/Boxkit-Labs/stellar-address-kit/packages/core-go"><img src="https://img.shields.io/badge/go-reference-blue?logo=go" alt="Go Reference"></a>
+  <a href="https://github.com/Boxkit-Labs/stellar-address-kit/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+</p>
+
+<p align="center">
+  <b>The deposit routing & address interop spec for Stellar (G/M/C + memos).</b><br/>
+  Validated identically across <b>TypeScript</b>, <b>Go</b>, and <b>Dart</b>.
+</p>
+
+---
+
+<p align="center">
+  <a href="CODE_OF_CONDUCT.md">Code of Conduct</a> •
+  <a href="CONTRIBUTING.md">Contributing</a> •
+  <a href="SECURITY.md">Security</a> •
+  <a href="LICENSE">License</a>
+</p>
+
+---
 
 
 ## Project Structure
