@@ -18,6 +18,9 @@ stellar-address-kit/
 │   ├── core-ts/         # TypeScript reference implementation
 │   ├── core-go/         # Go performance implementation
 │   └── core-dart/       # Dart/Flutter wallet implementation
+├── examples/            # Integration examples
+│   ├── flutter-demo/    # Flutter wallet example
+│   └── go-payment-listener/ # Go backend example
 ├── docs/                # Product Documentation
 │   └── guides/          # Migration and integration guides
 ├── scripts/             # Maintenance & Release utilities
