@@ -8,7 +8,7 @@ import { encodeMuxed, decodeMuxed } from "stellar-address-kit";
  * stellar-address-kit's BigInt implementation preserves them.
  */
 
-const TEST_G_ADDRESS = "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVWH4";
+const TEST_G_ADDRESS = "GAYCUYT553C5LHVE2XPW5GMEJT4BXGM7AHMJWLAPZP53KJO7EIQADRSI";
 const DEFAULT_ID = 9007199254740993n; // 2^53 + 1 (First unsafe integer)
 
 function audit(mAddress: string) {
@@ -24,20 +24,20 @@ function audit(mAddress: string) {
     const isMatch = diff === 0n;
     const matchStatus = isMatch ? "MATCH" : "CORRUPTED";
 
-    // ASCII Box-drawing output
-    console.log("+---------------------------------------------------------------+");
-    console.log("| BIGINT PRECISION AUDIT: SINGLE ADDRESS COMPARISON             |");
-    console.log("+---------------------------------------------------------------+");
-    console.log(`| Address: ${mAddress.padEnd(52)} |`);
-    console.log("+-----------------------+---------------------------------------+");
-    console.log("| PATH                  | DECODED ID VALUE                      |");
-    console.log("+-----------------------+---------------------------------------+");
-    console.log(`| Safe (BigInt)         | ${safeId.toString().padEnd(37)} |`);
-    console.log(`| Unsafe (Number)       | ${unsafeId.toString().padEnd(37)} |`);
-    console.log("+-----------------------+---------------------------------------+");
-    console.log(`| Match Status          | ${matchStatus.padEnd(37)} |`);
-    console.log(`| Numeric Difference    | ${diff.toString().padEnd(37)} |`);
-    console.log("+-----------------------+---------------------------------------+");
+    // ASCII Box-drawing output (Width: 87)
+    console.log("+-------------------------------------------------------------------------------------+");
+    console.log(`| ${"BIGINT PRECISION AUDIT: SINGLE ADDRESS COMPARISON".padEnd(83)} |`);
+    console.log("+-------------------------------------------------------------------------------------+");
+    console.log(`| ${`Address: ${mAddress}`.padEnd(83)} |`);
+    console.log("+-----------------------+-----------------------------------------------------------+");
+    console.log(`| ${"PATH".padEnd(21)} | ${"DECODED ID VALUE".padEnd(59)} |`);
+    console.log("+-----------------------+-----------------------------------------------------------+");
+    console.log(`| ${"Safe (BigInt)".padEnd(21)} | ${safeId.toString().padEnd(59)} |`);
+    console.log(`| ${"Unsafe (Number)".padEnd(21)} | ${unsafeId.toString().padEnd(59)} |`);
+    console.log("+-----------------------+-----------------------------------------------------------+");
+    console.log(`| ${"Match Status".padEnd(21)} | ${matchStatus.padEnd(59)} |`);
+    console.log(`| ${"Numeric Difference".padEnd(21)} | ${diff.toString().padEnd(59)} |`);
+    console.log("+-----------------------+-----------------------------------------------------------+");
 
     if (!isMatch) {
       console.log("\n[!] ALERT: Precision loss detected!");
@@ -57,8 +57,9 @@ const arg = process.argv[2];
 let targetAddress = arg;
 
 if (!arg) {
-  console.log(`No address provided. Auditing default ID: ${DEFAULT_ID}`);
   targetAddress = encodeMuxed(TEST_G_ADDRESS, DEFAULT_ID);
+  console.log(`No address provided. Auditing default ID: ${DEFAULT_ID}`);
+  console.log(`Encoded M-address: ${targetAddress}`);
 }
 
 audit(targetAddress);
