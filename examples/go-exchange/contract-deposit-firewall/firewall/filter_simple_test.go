@@ -37,7 +37,7 @@ func TestFilterDeposit(t *testing.T) {
 		},
 		{
 			name:     "memo ignored for muxed warning",
-			address:  "MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+			address:  "MBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
 			expected: ManualReview,
 		},
 		{
