@@ -11,6 +11,13 @@
         input, select { width: 100%; padding: 8px; box-sizing: border-box; }
         button { padding: 10px 20px; cursor: pointer; }
         #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; display: none; }
+        .status-indicator { font-size: 0.85em; margin-top: 5px; min-height: 1.2em; }
+        .validating { color: #666; font-style: italic; }
+        .error { color: #d93025; }
+        .success { color: #188038; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-left: 8px; text-transform: uppercase; }
+        .badge-m { background: #e8f0fe; color: #1967d2; }
+        .badge-c { background: #fce8e6; color: #d93025; }
     </style>
 </head>
 <body>
@@ -19,6 +26,7 @@
     <div class="form-group">
         <label for="address">Stellar Address (G..., M..., or C...)</label>
         <input type="text" id="address" placeholder="Enter Stellar address">
+        <div id="addressStatus" class="status-indicator"></div>
     </div>
 
     <div class="form-group">
@@ -47,6 +55,92 @@
         const memoTypeSelect = document.getElementById('memoType');
         const memoValueInput = document.getElementById('memoValue');
         const resultDiv = document.getElementById('result');
+        const addressStatus = document.getElementById('addressStatus');
+        let abortController = null;
+        let debounceTimer = null;
+
+        const clearValidationState = () => {
+            addressStatus.textContent = '';
+            addressStatus.className = 'status-indicator';
+            memoTypeSelect.disabled = false;
+            memoValueInput.disabled = false;
+            resultDiv.style.display = 'none';
+            resultDiv.textContent = '';
+        };
+
+        const validateAddress = async (value) => {
+            if (!value) {
+                clearValidationState();
+                return;
+            }
+
+            if (abortController) {
+                abortController.abort();
+            }
+            abortController = new AbortController();
+
+            addressStatus.textContent = 'Validating...';
+            addressStatus.className = 'status-indicator validating';
+
+            try {
+                const response = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: value }),
+                    signal: abortController.signal
+                });
+
+                const result = await response.json();
+                
+                // For this example, we simulate detection logic based on address prefix
+                // since the backend might still be a placeholder.
+                const isMAddress = value.startsWith('M');
+                const isCAddress = value.startsWith('C');
+
+                addressStatus.className = 'status-indicator';
+                if (isCAddress) {
+                    addressStatus.innerHTML = '<span class="error">Contract addresses are not supported</span><span class="badge badge-c">Rejected</span>';
+                    memoTypeSelect.disabled = false;
+                    memoValueInput.disabled = false;
+                } else if (isMAddress) {
+                    addressStatus.innerHTML = '<span class="success">Muxed address detected</span><span class="badge badge-m">M-Address</span>';
+                    memoTypeSelect.disabled = true;
+                    memoValueInput.disabled = true;
+                    memoTypeSelect.value = 'none';
+                    memoValueInput.value = '';
+                } else if (value.startsWith('G')) {
+                    addressStatus.innerHTML = '<span class="success">Valid Stellar address</span>';
+                    memoTypeSelect.disabled = false;
+                    memoValueInput.disabled = false;
+                } else {
+                    addressStatus.innerHTML = '<span class="error">Invalid address format</span>';
+                }
+
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                addressStatus.innerHTML = '<span class="error">Validation failed</span>';
+            }
+        };
+
+        addressInput.addEventListener('input', (e) => {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            
+            const value = e.target.value.trim();
+            if (!value) {
+                clearValidationState();
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                validateAddress(value);
+            }, 300);
+        });
+
+        addressInput.addEventListener('paste', (e) => {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+            validateAddress(pastedData.trim());
+        });
 
         submitBtn.addEventListener('click', async () => {
             const data = {
@@ -55,13 +149,8 @@
                 memoValue: memoValueInput.value
             };
 
-            // Logic will be implemented later
             resultDiv.style.display = 'block';
-            resultDiv.textContent = 'Submission received (placeholder)';
-        });
-
-        addressInput.addEventListener('input', () => {
-            // Logic for disabling memo for M-addresses will be implemented later
+            resultDiv.textContent = 'Submission received for: ' + data.address;
         });
     </script>
 </body>
