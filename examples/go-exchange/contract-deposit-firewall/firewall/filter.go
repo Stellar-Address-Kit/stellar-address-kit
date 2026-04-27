@@ -66,3 +66,16 @@ func FilterDeposit(result routing.RoutingResult) Decision {
 
 	return highestDecision
 }
+
+// FilterDepositFromAddress evaluates a deposit address and returns a routing decision.
+func FilterDepositFromAddress(addr string) Decision {
+	// Parse the address to get routing information
+	input := routing.RoutingInput{
+		Destination: addr,
+		MemoType:    "none",
+		MemoValue:   "",
+	}
+
+	result := routing.ExtractRouting(input)
+	return FilterDeposit(result)
+}
