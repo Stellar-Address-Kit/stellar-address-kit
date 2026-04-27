@@ -4,8 +4,14 @@ This example demonstrates how the standard JavaScript Number() constructor silen
 
 ## Quick Start
 
+```bash
 npm install
+# Run with default high-ID address
 npx tsx src/main.ts
+
+# Run with a specific muxed address
+npx tsx src/main.ts M...
+```
 
 ## Why This Matters
 
