@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'features/unsafe_panel.dart';
 import 'features/safe_panel.dart';
+import 'features/batch_table.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,21 +12,28 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Safe BigInt Demo')),
-      body: isWide
-          ? Row(
-              children: const [
-                Expanded(child: UnsafePanel()),
-                VerticalDivider(),
-                Expanded(child: SafePanel()),
-              ],
+      body: ListView(
+        children: [
+          if (isWide)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  Expanded(child: UnsafePanel()),
+                  VerticalDivider(),
+                  Expanded(child: SafePanel()),
+                ],
+              ),
             )
-          : ListView(
-              children: const [
-                UnsafePanel(),
-                Divider(),
-                SafePanel(),
-              ],
-            ),
+          else ...[
+            const UnsafePanel(),
+            const Divider(),
+            const SafePanel(),
+          ],
+          const Divider(),
+          const BatchComparisonTable(),
+        ],
+      ),
     );
   }
 }
