@@ -2,6 +2,9 @@
   "name": "exchange-withdrawal-validator",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts"
+  },
   "dependencies": {
     "express": "^4.18.3",
     "stellar-address-kit": "^1.0.1"

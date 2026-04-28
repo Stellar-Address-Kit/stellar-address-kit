@@ -3,65 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exchange Withdrawal Validator</title>
+    <title>Exchange Withdrawal Validator | Stellar Address Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { padding: 10px 20px; cursor: pointer; }
-        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; display: none; }
+        :root {
+            --bg-color: #020617;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --error: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --input-bg: #0f172a;
+            --border: #334155;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(129, 140, 248, 0.15) 0px, transparent 50%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(12px);
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.625rem;
+            color: var(--text-muted);
+            letter-spacing: 0.025em;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+            background-color: #1e293b;
+        }
+
+        input:disabled, select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .badge {
+            position: absolute;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .badge.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .badge-g { background-color: var(--success); color: #fff; box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+        .badge-m { background-color: var(--accent-primary); color: #fff; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+        .badge-c { background-color: var(--warning); color: #fff; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+
+        .error-text {
+            color: var(--error);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid var(--error);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .reason-text {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            background-color: rgba(148, 163, 184, 0.1);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            display: none;
+            line-height: 1.4;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-color);
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(56, 189, 248, 0.2);
+            filter: brightness(1.1);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            display: none;
+            white-space: pre-wrap;
+            color: var(--accent-primary);
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            display: none;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <h1>Exchange Withdrawal Validator</h1>
-    
-    <div class="form-group">
-        <label for="address">Stellar Address (G..., M..., or C...)</label>
-        <input type="text" id="address" placeholder="Enter Stellar address">
+    <div class="container">
+        <h1>Stellar Validator</h1>
+        <p class="subtitle">Securely validate withdrawal destinations</p>
+        
+        <div class="form-group">
+            <label for="address">Recipient Address</label>
+            <div class="input-wrapper">
+                <input type="text" id="address" placeholder="G... / M... / C..." spellcheck="false">
+                <span id="addressBadge" class="badge"></span>
+            </div>
+            <div id="addressError" class="error-text"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="memoType">Memo Type</label>
+            <select id="memoType">
+                <option value="none">None</option>
+                <option value="text">TEXT</option>
+                <option value="id">ID</option>
+                <option value="hash">HASH</option>
+                <option value="return">RETURN</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="memoValue">Memo Value</label>
+            <input type="text" id="memoValue" placeholder="Enter memo (if required)" spellcheck="false">
+            <div id="memoReason" class="reason-text"></div>
+        </div>
+
+        <button id="submitBtn">
+            <span id="btnText">Validate Withdrawal</span>
+        </button>
+
+        <div id="result"></div>
     </div>
-
-    <div class="form-group">
-        <label for="memoType">Memo Type</label>
-        <select id="memoType">
-            <option value="none">None</option>
-            <option value="text">TEXT</option>
-            <option value="id">ID</option>
-            <option value="hash">HASH</option>
-            <option value="return">RETURN</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="memoValue">Memo Value</label>
-        <input type="text" id="memoValue" placeholder="Enter memo value">
-    </div>
-
-    <button id="submit">Validate Withdrawal</button>
-
-    <div id="result"></div>
 
     <script>
-        const submitBtn = document.getElementById('submit');
         const addressInput = document.getElementById('address');
+        const addressBadge = document.getElementById('addressBadge');
+        const addressError = document.getElementById('addressError');
         const memoTypeSelect = document.getElementById('memoType');
         const memoValueInput = document.getElementById('memoValue');
+        const memoReason = document.getElementById('memoReason');
+        const submitBtn = document.getElementById('submitBtn');
         const resultDiv = document.getElementById('result');
+
+        async function validateAddress() {
+            const address = addressInput.value.trim();
+            if (!address) {
+                resetValidation();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address })
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+
+                // 1. Show badge
+                if (data.valid && data.type) {
+                    addressBadge.textContent = data.type;
+                    addressBadge.className = 'badge show badge-' + data.type.toLowerCase();
+                } else if (!data.valid && data.type) {
+                    // Show badge even if invalid but type detected (like C addresses)
+                    addressBadge.textContent = data.type;
+                    addressBadge.className = 'badge show badge-' + data.type.toLowerCase();
+                } else {
+                    addressBadge.classList.remove('show');
+                }
+
+                // 2. Handle validity
+                if (data.valid === false) {
+                    addressError.textContent = data.error || 'Invalid address';
+                    addressError.style.display = 'block';
+                    submitBtn.disabled = true;
+                } else {
+                    addressError.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+
+                // 3. Handle memo fields
+                if (data.memoDisabled) {
+                    memoTypeSelect.disabled = true;
+                    memoValueInput.disabled = true;
+                    memoReason.textContent = data.reason || 'Memo is disabled for this address type.';
+                    memoReason.style.display = 'block';
+                } else {
+                    memoTypeSelect.disabled = false;
+                    memoValueInput.disabled = false;
+                    memoReason.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Validation failed:', error);
+                addressError.textContent = 'Connection error. Could not validate address.';
+                addressError.style.display = 'block';
+            }
+        }
+
+        function resetValidation() {
+            addressBadge.classList.remove('show');
+            addressError.style.display = 'none';
+            memoTypeSelect.disabled = false;
+            memoValueInput.disabled = false;
+            memoReason.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+
+        addressInput.addEventListener('blur', validateAddress);
+        
+        // Also trigger validation on Enter key
+        addressInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validateAddress();
+        });
 
         submitBtn.addEventListener('click', async () => {
             const data = {
-                address: addressInput.value,
+                address: addressInput.value.trim(),
                 memoType: memoTypeSelect.value,
-                memoValue: memoValueInput.value
+                memoValue: memoValueInput.value.trim()
             };
 
-            // Logic will be implemented later
+            submitBtn.disabled = true;
+            resultDiv.textContent = 'Analyzing withdrawal route...';
             resultDiv.style.display = 'block';
-            resultDiv.textContent = 'Submission received (placeholder)';
-        });
 
-        addressInput.addEventListener('input', () => {
-            // Logic for disabling memo for M-addresses will be implemented later
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            } finally {
+                submitBtn.disabled = false;
+            }
         });
     </script>
 </body>
