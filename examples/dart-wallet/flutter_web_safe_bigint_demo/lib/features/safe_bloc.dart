@@ -18,10 +18,18 @@ class SafeState extends Equatable {
   List<Object> get props => [];
 }
 
+class SafeAddressState extends SafeState {
+  final String address;
+  SafeAddressState(this.address);
+  @override
+  List<Object> get props => [address];
+}
+
 class SafeBloc extends Bloc<SafeEvent, SafeState> {
   SafeBloc() : super(SafeState()) {
     on<AddressChanged>((event, emit) {
-      // Placeholder
+      emit(SafeAddressState(event.address));
     });
   }
 }
+

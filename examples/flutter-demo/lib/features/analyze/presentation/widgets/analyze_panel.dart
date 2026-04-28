@@ -5,14 +5,14 @@ import '../../../../core/widgets/address_badge.dart';
 import '../bloc/analyze_bloc.dart';
 
 class AnalyzePanel extends StatefulWidget {
-  const AnalyzePanel({super.key});
+  final TextEditingController addressController;
+  const AnalyzePanel({super.key, required this.addressController});
 
   @override
   State<AnalyzePanel> createState() => _AnalyzePanelState();
 }
 
 class _AnalyzePanelState extends State<AnalyzePanel> {
-  final _addressController = TextEditingController();
   final _memoController = TextEditingController();
   final _sourceController = TextEditingController();
   String _memoType = 'none';
@@ -20,7 +20,6 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
   @override
   void initState() {
     super.initState();
-    _addressController.addListener(_onChanged);
     _memoController.addListener(_onChanged);
     _sourceController.addListener(_onChanged);
   }
@@ -28,7 +27,7 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
   void _onChanged() {
     context.read<AnalyzeBloc>().add(
           AnalyzeInputChanged(
-            address: _addressController.text,
+            address: widget.addressController.text,
             memoType: _memoType,
             memoValue: _memoController.text,
             sourceAccount: _sourceController.text,
@@ -49,18 +48,10 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Paste an address to see how it would be routed in a production system.',
+            'The address above is being analyzed for routing in a production system.',
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
-          TextField(
-            controller: _addressController,
-            decoration: const InputDecoration(
-              labelText: 'Destination Address (G, M, or C)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
           BlocBuilder<AnalyzeBloc, AnalyzeState>(
             builder: (context, state) {
               final isMuxed = state is AnalyzeSuccess && state.analysis.addressKind == 'M';
@@ -128,7 +119,7 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
               if (state is AnalyzeSuccess) {
                 return _buildAnalysisResult(state.analysis);
               }
-              return const Center(child: Text('Paste an address to begin'));
+              return const Center(child: Text('Enter or paste an address at the top'));
             },
           ),
         ],
@@ -234,9 +225,9 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
 
   @override
   void dispose() {
-    _addressController.dispose();
     _memoController.dispose();
     _sourceController.dispose();
     super.dispose();
   }
 }
+

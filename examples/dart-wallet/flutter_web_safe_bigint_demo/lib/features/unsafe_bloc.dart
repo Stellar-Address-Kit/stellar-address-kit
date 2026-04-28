@@ -18,10 +18,18 @@ class UnsafeState extends Equatable {
   List<Object> get props => [];
 }
 
+class UnsafeAddressState extends UnsafeState {
+  final String address;
+  UnsafeAddressState(this.address);
+  @override
+  List<Object> get props => [address];
+}
+
 class UnsafeBloc extends Bloc<UnsafeEvent, UnsafeState> {
   UnsafeBloc() : super(UnsafeState()) {
     on<AddressChanged>((event, emit) {
-      // Placeholder
+      emit(UnsafeAddressState(event.address));
     });
   }
 }
+
