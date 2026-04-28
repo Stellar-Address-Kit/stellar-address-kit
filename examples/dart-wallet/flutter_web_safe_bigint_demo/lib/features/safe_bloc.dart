@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:stellar_address_kit/stellar_address_kit.dart';
 
 abstract class SafeEvent extends Equatable {
   @override
@@ -19,16 +20,21 @@ class SafeState extends Equatable {
 }
 
 class SafeAddressState extends SafeState {
-  final String address;
-  SafeAddressState(this.address);
+  final BigInt id;
+  SafeAddressState(this.id);
   @override
-  List<Object> get props => [address];
+  List<Object> get props => [id];
 }
 
 class SafeBloc extends Bloc<SafeEvent, SafeState> {
   SafeBloc() : super(SafeState()) {
     on<AddressChanged>((event, emit) {
-      emit(SafeAddressState(event.address));
+      try {
+        final decoded = MuxedAddress.decode(event.address);
+        emit(SafeAddressState(decoded.id));
+      } catch (_) {
+        emit(SafeState());
+      }
     });
   }
 }

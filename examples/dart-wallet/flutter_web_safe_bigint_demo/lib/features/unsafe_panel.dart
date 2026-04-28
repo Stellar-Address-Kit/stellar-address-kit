@@ -15,7 +15,8 @@ class UnsafePanel extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const Text('Unsafe Processing...'),
             if (state is UnsafeAddressState)
-              Text(state.address, style: const TextStyle(fontSize: 10)),
+              Text('ID: ${state.id}', style: const TextStyle(fontSize: 14)),
+
           ],
         );
       },

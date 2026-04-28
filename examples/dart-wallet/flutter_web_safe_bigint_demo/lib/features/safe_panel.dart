@@ -15,7 +15,8 @@ class SafePanel extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const Text('Safe Processing...'),
             if (state is SafeAddressState)
-              Text(state.address, style: const TextStyle(fontSize: 10)),
+              Text('ID: ${state.id}', style: const TextStyle(fontSize: 14)),
+
           ],
         );
       },
