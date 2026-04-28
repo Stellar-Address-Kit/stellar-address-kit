@@ -47,8 +47,6 @@
     </div>
 
     <button id="submit">Validate Withdrawal</button>
-
-    <div id="validation"></div>
     <div id="result"></div>
 
     <script>
@@ -150,16 +148,16 @@
 
         addressInput.addEventListener('paste', (e) => {
             clearTimeout(debounceTimer);
-            // Use the pasted data directly from clipboard
             const pastedData = (e.clipboardData || window.clipboardData).getData('text').trim();
+            addressInput.value = pastedData;
             validateAddress(pastedData);
         });
 
         submitBtn.addEventListener('click', async () => {
             const data = {
-                address: addressInput.value,
+                address: addressInput.value.trim(),
                 memoType: memoTypeSelect.value,
-                memoValue: memoValueInput.value
+                memoValue: memoValueInput.value.trim()
             };
 
             resultDiv.style.display = 'block';
