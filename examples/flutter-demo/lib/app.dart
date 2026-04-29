@@ -4,8 +4,10 @@ import 'core/theme/app_theme.dart';
 import 'features/receive/domain/usecases/generate_deposit_instruction.dart';
 import 'features/receive/presentation/bloc/receive_bloc.dart';
 import 'features/analyze/domain/usecases/analyze_address.dart';
-import 'features/analyze/presentation/bloc/analyze_bloc.dart';
-import 'features/home/presentation/home_screen.dart';
+import 'package:stellar_address_kit_demo/features/analyze/presentation/bloc/analyze_bloc.dart';
+import 'package:stellar_address_kit_demo/features/safe_bloc.dart';
+import 'package:stellar_address_kit_demo/features/unsafe_bloc.dart';
+import 'package:stellar_address_kit_demo/features/home/presentation/home_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -23,6 +25,12 @@ class App extends StatelessWidget {
           create: (context) => AnalyzeBloc(
             analyzeUseCase: AnalyzeAddress(),
           ),
+        ),
+        BlocProvider(
+          create: (context) => SafeBloc(),
+        ),
+        BlocProvider(
+          create: (context) => UnsafeBloc(),
         ),
       ],
       child: MaterialApp(
