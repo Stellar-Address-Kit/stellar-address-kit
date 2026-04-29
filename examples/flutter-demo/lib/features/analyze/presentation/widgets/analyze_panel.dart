@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stellar_address_kit/stellar_address_kit.dart';
 import '../../../../core/widgets/address_badge.dart';
+import '../../safe_bloc.dart';
 import '../bloc/analyze_bloc.dart';
 
 class AnalyzePanel extends StatefulWidget {
@@ -26,14 +27,16 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
   }
 
   void _onChanged() {
+    final address = _addressController.text;
     context.read<AnalyzeBloc>().add(
           AnalyzeInputChanged(
-            address: _addressController.text,
+            address: address,
             memoType: _memoType,
             memoValue: _memoController.text,
             sourceAccount: _sourceController.text,
           ),
         );
+    context.read<SafeBloc>().add(AddressChanged(address));
   }
 
   @override
