@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stellar_address_kit/stellar_address_kit.dart';
 import '../../domain/entities/deposit_instruction.dart';
 import '../../domain/usecases/generate_deposit_instruction.dart';
 
-// Events
 abstract class ReceiveEvent extends Equatable {
   const ReceiveEvent();
   @override
@@ -20,7 +20,15 @@ class ReceiveFieldsChanged extends ReceiveEvent {
   List<Object?> get props => [baseAddress, id];
 }
 
-// States
+class AddressChanged extends ReceiveEvent {
+  final String address;
+
+  const AddressChanged(this.address);
+
+  @override
+  List<Object?> get props => [address];
+}
+
 abstract class ReceiveState extends Equatable {
   const ReceiveState();
   @override
@@ -47,12 +55,12 @@ class ReceiveError extends ReceiveState {
   List<Object?> get props => [message];
 }
 
-// BLoC
 class ReceiveBloc extends Bloc<ReceiveEvent, ReceiveState> {
   final GenerateDepositInstruction generateUseCase;
 
   ReceiveBloc({required this.generateUseCase}) : super(ReceiveInitial()) {
     on<ReceiveFieldsChanged>(_onFieldsChanged);
+    on<AddressChanged>(_onAddressChanged);
   }
 
   void _onFieldsChanged(ReceiveFieldsChanged event, Emitter<ReceiveState> emit) {
@@ -69,6 +77,30 @@ class ReceiveBloc extends Bloc<ReceiveEvent, ReceiveState> {
       emit(ReceiveSuccess(instruction));
     } catch (e) {
       emit(ReceiveError(e.toString()));
+    }
+  }
+
+  void _onAddressChanged(AddressChanged event, Emitter<ReceiveState> emit) {
+    if (event.address.isEmpty) {
+      emit(ReceiveInitial());
+      return;
+    }
+
+    try {
+      final parsed = StellarAddress.parse(event.address);
+      if (parsed.kind == AddressKind.m) {
+        final decoded = MuxedAddress.decode(event.address);
+        emit(ReceiveSuccess(DepositInstruction(
+          baseAddress: decoded.baseG,
+          id: decoded.id,
+          muxedAddress: event.address,
+        )));
+      } else {
+        emit(ReceiveInitial());
+      }
+    } catch (e) {
+
+      emit(ReceiveInitial());
     }
   }
 }
