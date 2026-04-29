@@ -9,8 +9,14 @@ npm install
 # Run with default high-ID address
 npx tsx src/main.ts
 
+# Run with default high-ID address and JSON output
+npx tsx src/main.ts --json
+
 # Run with a specific muxed address
 npx tsx src/main.ts M...
+
+# Run with JSON output for a specific muxed address
+npx tsx src/main.ts --json M...
 ```
 
 ## Why This Matters
