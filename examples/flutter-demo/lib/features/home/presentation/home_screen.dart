@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../receive/presentation/widgets/receive_panel.dart';
 import '../../analyze/presentation/widgets/analyze_panel.dart';
-import '../../safe_panel.dart';
+import 'package:stellar_address_kit_demo/features/safe_panel.dart';
+import 'package:stellar_address_kit_demo/features/unsafe_panel.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,7 @@ class HomeScreen extends StatelessWidget {
           if (constraints.maxWidth > 900) {
             return const Row(
               children: [
-                Expanded(child: ReceivePanel()),
+                Expanded(child: UnsafePanel()),
                 VerticalDivider(width: 1),
                 Expanded(child: AnalyzePanel()),
                 VerticalDivider(width: 1),
@@ -29,32 +30,34 @@ class HomeScreen extends StatelessWidget {
             return const SingleChildScrollView(
               child: Column(
                 children: [
-                  const ReceivePanel(),
-                  const Divider(height: 1),
-                  const AnalyzePanel(),
-                  const Divider(height: 1),
-                  const SafePanel(),
+                  UnsafePanel(),
+                  Divider(height: 1),
+                  AnalyzePanel(),
+                  Divider(height: 1),
+                  SafePanel(),
                 ],
               ),
             );
           } else {
             return const DefaultTabController(
-              length: 3,
+              length: 4,
               child: Column(
                 children: [
                   TabBar(
                     tabs: [
-                      Tab(text: 'Receive', icon: Icon(Icons.download)),
+                      Tab(text: 'Unsafe', icon: Icon(Icons.warning)),
                       Tab(text: 'Analyze', icon: Icon(Icons.search)),
                       Tab(text: 'Safe', icon: Icon(Icons.security)),
+                      Tab(text: 'Receive', icon: Icon(Icons.download)),
                     ],
                   ),
                   Expanded(
                     child: TabBarView(
                       children: [
-                        ReceivePanel(),
+                        UnsafePanel(),
                         AnalyzePanel(),
                         SafePanel(),
+                        ReceivePanel(),
                       ],
                     ),
                   ),
