@@ -1,8 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stellar_address_kit/stellar_address_kit.dart';
+import 'package:stellar_address_kit_demo/features/safe_bloc.dart';
 import '../../../../core/widgets/address_badge.dart';
-import '../../safe_bloc.dart';
 import '../bloc/analyze_bloc.dart';
 
 class AnalyzePanel extends StatefulWidget {
@@ -66,8 +68,9 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
           const SizedBox(height: 16),
           BlocBuilder<AnalyzeBloc, AnalyzeState>(
             builder: (context, state) {
-              final isMuxed = state is AnalyzeSuccess && state.analysis.addressKind == 'M';
-              
+              final isMuxed =
+                  state is AnalyzeSuccess && state.analysis.addressKind == 'M';
+
               return Column(
                 children: [
                   Row(
@@ -82,12 +85,15 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
                             border: OutlineInputBorder(),
                           ),
                           items: ['none', 'id', 'text', 'hash', 'return']
-                              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                              .map((t) =>
+                                  DropdownMenuItem(value: t, child: Text(t)))
                               .toList(),
-                          onChanged: isMuxed ? null : (val) {
-                            setState(() => _memoType = val!);
-                            _onChanged();
-                          },
+                          onChanged: isMuxed
+                              ? null
+                              : (val) {
+                                  setState(() => _memoType = val!);
+                                  _onChanged();
+                                },
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -147,24 +153,26 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
           children: [
             AddressBadge(kind: analysis.addressKind),
             const SizedBox(width: 12),
-            const Text('Routing Analysis', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Routing Analysis',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 16),
         _buildInfoRow('Base Account', analysis.destinationBaseAccount),
         _buildInfoRow('Routing ID', analysis.routingId?.toString() ?? 'None'),
-        _buildInfoRow('Source', analysis.routingSource.toString().split('.').last),
+        _buildInfoRow(
+            'Source', analysis.routingSource.toString().split('.').last),
         if (analysis.warnings.isNotEmpty) ...[
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
             child: Divider(),
           ),
-          const Text('Warnings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text('Warnings',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 8),
           ...analysis.warnings.map((w) => _buildWarningTile(w)),
         ],
-        if (analysis.error != null)
-          _buildErrorTile(analysis.error!),
+        if (analysis.error != null) _buildErrorTile(analysis.error!),
       ],
     );
   }
@@ -180,7 +188,8 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
             child: SelectableText(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 12, fontFamily: 'JetBrains Mono'),
+              style:
+                  const TextStyle(fontSize: 12, fontFamily: 'JetBrains Mono'),
             ),
           ),
         ],
@@ -189,7 +198,9 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
   }
 
   Widget _buildWarningTile(RoutingWarning w) {
-    final color = w.severity == 'error' ? Colors.red : (w.severity == 'warn' ? Colors.amber : Colors.blue);
+    final color = w.severity == 'error'
+        ? Colors.red
+        : (w.severity == 'warn' ? Colors.amber : Colors.blue);
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
       child: Row(
@@ -225,8 +236,11 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(e.code.toString().split('.').last, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-                Text(e.message, style: const TextStyle(fontSize: 12, color: Colors.red)),
+                Text(e.code.toString().split('.').last,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.red)),
+                Text(e.message,
+                    style: const TextStyle(fontSize: 12, color: Colors.red)),
               ],
             ),
           ),
