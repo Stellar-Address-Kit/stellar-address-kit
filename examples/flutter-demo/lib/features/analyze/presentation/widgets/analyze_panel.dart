@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stellar_address_kit/stellar_address_kit.dart';
 import '../../../../core/widgets/address_badge.dart';
+import '../../safe_bloc.dart';
 import '../bloc/analyze_bloc.dart';
 
 class AnalyzePanel extends StatefulWidget {
-  final TextEditingController addressController;
-  const AnalyzePanel({super.key, required this.addressController});
+  const AnalyzePanel({super.key});
 
   @override
   State<AnalyzePanel> createState() => _AnalyzePanelState();
 }
 
 class _AnalyzePanelState extends State<AnalyzePanel> {
+  final _addressController = TextEditingController();
   final _memoController = TextEditingController();
   final _sourceController = TextEditingController();
   String _memoType = 'none';
@@ -20,19 +21,22 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
   @override
   void initState() {
     super.initState();
+    _addressController.addListener(_onChanged);
     _memoController.addListener(_onChanged);
     _sourceController.addListener(_onChanged);
   }
 
   void _onChanged() {
+    final address = _addressController.text;
     context.read<AnalyzeBloc>().add(
           AnalyzeInputChanged(
-            address: widget.addressController.text,
+            address: address,
             memoType: _memoType,
             memoValue: _memoController.text,
             sourceAccount: _sourceController.text,
           ),
         );
+    context.read<SafeBloc>().add(AddressChanged(address));
   }
 
   @override
@@ -48,10 +52,18 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'The address above is being analyzed for routing in a production system.',
+            'Paste an address to see how it would be routed in a production system.',
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
+          TextField(
+            controller: _addressController,
+            decoration: const InputDecoration(
+              labelText: 'Destination Address (G, M, or C)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
           BlocBuilder<AnalyzeBloc, AnalyzeState>(
             builder: (context, state) {
               final isMuxed = state is AnalyzeSuccess && state.analysis.addressKind == 'M';
@@ -119,7 +131,7 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
               if (state is AnalyzeSuccess) {
                 return _buildAnalysisResult(state.analysis);
               }
-              return const Center(child: Text('Enter or paste an address at the top'));
+              return const Center(child: Text('Paste an address to begin'));
             },
           ),
         ],
@@ -225,9 +237,9 @@ class _AnalyzePanelState extends State<AnalyzePanel> {
 
   @override
   void dispose() {
+    _addressController.dispose();
     _memoController.dispose();
     _sourceController.dispose();
     super.dispose();
   }
 }
-

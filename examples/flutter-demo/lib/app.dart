@@ -5,6 +5,7 @@ import 'features/receive/domain/usecases/generate_deposit_instruction.dart';
 import 'features/receive/presentation/bloc/receive_bloc.dart';
 import 'features/analyze/domain/usecases/analyze_address.dart';
 import 'features/analyze/presentation/bloc/analyze_bloc.dart';
+import 'features/safe_bloc.dart';
 import 'features/home/presentation/home_screen.dart';
 
 class App extends StatelessWidget {
@@ -23,6 +24,9 @@ class App extends StatelessWidget {
           create: (context) => AnalyzeBloc(
             analyzeUseCase: AnalyzeAddress(),
           ),
+        ),
+        BlocProvider(
+          create: (context) => SafeBloc(),
         ),
       ],
       child: MaterialApp(
