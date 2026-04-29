@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { extractRouting, RoutingInput } from 'stellar-address-kit';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -61,6 +63,27 @@ app.post('/api/analyze', (req, res) => {
       recommendation: 'Safe to proceed with withdrawal'
     }
   });
+
+  try {
+    const input: RoutingInput = {
+      destination: address,
+      memoType: memoType === 'none' ? 'none' : memoType,
+      memoValue: memoValue || null,
+      sourceAccount: null,
+    };
+
+    const result = extractRouting(input);
+    
+    // Convert BigInt to string for JSON serialization
+    const serializedResult = {
+      ...result,
+      routingId: result.routingId?.toString() || null,
+    };
+
+    res.json(serializedResult);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.listen(port, () => {
