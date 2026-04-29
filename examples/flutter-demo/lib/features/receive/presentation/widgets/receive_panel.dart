@@ -6,29 +6,26 @@ import '../../../../core/widgets/bigint_safe_chip.dart';
 import '../bloc/receive_bloc.dart';
 
 class ReceivePanel extends StatefulWidget {
-  const ReceivePanel({super.key});
+  final TextEditingController addressController;
+  const ReceivePanel({super.key, required this.addressController});
 
   @override
   State<ReceivePanel> createState() => _ReceivePanelState();
 }
 
 class _ReceivePanelState extends State<ReceivePanel> {
-  final _addressController = TextEditingController(
-    text: 'GA7QYNF7SOWQ3GLR2B6RS22TBGZAOR6KLYH4PA5ZAM73A3H4K2HZZSQU',
-  );
   final _idController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _idController.addListener(_onChanged);
-    _addressController.addListener(_onChanged);
   }
 
   void _onChanged() {
     context.read<ReceiveBloc>().add(
           ReceiveFieldsChanged(
-            baseAddress: _addressController.text,
+            baseAddress: widget.addressController.text,
             id: _idController.text,
           ),
         );
@@ -42,23 +39,15 @@ class _ReceivePanelState extends State<ReceivePanel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Generate M-Address',
+            'Deposit Details',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           const Text(
-            'Create a muxed address for deposits. This combines your G-address with a user ID.',
+            'Enter a User ID if using a G-address, or see the decoded details of an M-address.',
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
-          TextField(
-            controller: _addressController,
-            decoration: const InputDecoration(
-              labelText: 'Base G-Address',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
           TextField(
             controller: _idController,
             keyboardType: TextInputType.number,
@@ -81,7 +70,7 @@ class _ReceivePanelState extends State<ReceivePanel> {
                     style: const TextStyle(color: Colors.red),
                   );
                 }
-                return const Text('Enter details to generate');
+                return const Text('Enter details or use address at top');
               },
             ),
           ),
@@ -133,8 +122,8 @@ class _ReceivePanelState extends State<ReceivePanel> {
 
   @override
   void dispose() {
-    _addressController.dispose();
     _idController.dispose();
     super.dispose();
   }
 }
+

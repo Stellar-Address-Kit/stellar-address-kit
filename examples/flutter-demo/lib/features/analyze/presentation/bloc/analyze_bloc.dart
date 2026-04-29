@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/address_analysis.dart';
 import '../../domain/usecases/analyze_address.dart';
 
-// Events
 abstract class AnalyzeEvent extends Equatable {
   const AnalyzeEvent();
   @override
@@ -27,7 +26,15 @@ class AnalyzeInputChanged extends AnalyzeEvent {
   List<Object?> get props => [address, memoType, memoValue, sourceAccount];
 }
 
-// States
+class AddressChanged extends AnalyzeEvent {
+  final String address;
+
+  const AddressChanged(this.address);
+
+  @override
+  List<Object?> get props => [address];
+}
+
 abstract class AnalyzeState extends Equatable {
   const AnalyzeState();
   @override
@@ -45,12 +52,12 @@ class AnalyzeSuccess extends AnalyzeState {
   List<Object?> get props => [analysis];
 }
 
-// BLoC
 class AnalyzeBloc extends Bloc<AnalyzeEvent, AnalyzeState> {
   final AnalyzeAddress analyzeUseCase;
 
   AnalyzeBloc({required this.analyzeUseCase}) : super(AnalyzeInitial()) {
     on<AnalyzeInputChanged>(_onInputChanged);
+    on<AddressChanged>(_onAddressChanged);
   }
 
   void _onInputChanged(AnalyzeInputChanged event, Emitter<AnalyzeState> emit) {
@@ -64,6 +71,19 @@ class AnalyzeBloc extends Bloc<AnalyzeEvent, AnalyzeState> {
       memoType: event.memoType,
       memoValue: event.memoValue,
       sourceAccount: event.sourceAccount,
+    );
+
+    emit(AnalyzeSuccess(analysis));
+  }
+
+  void _onAddressChanged(AddressChanged event, Emitter<AnalyzeState> emit) {
+    if (event.address.isEmpty) {
+      emit(AnalyzeInitial());
+      return;
+    }
+
+    final analysis = analyzeUseCase(
+      address: event.address,
     );
 
     emit(AnalyzeSuccess(analysis));
