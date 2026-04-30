@@ -1,7 +1,7 @@
 <h1 align="center">Stellar Address Kit</h1>
 
 <p align="center">
-  <b>The deposit routing spec for Stellar, implemented in TypeScript, Go, and Dart.</b>
+  <b>The deposit routing spec for Stellar, implemented in TypeScript, Go, and Dart. All 3 packages are live</b>
 </p>
 
 <p align="center">
