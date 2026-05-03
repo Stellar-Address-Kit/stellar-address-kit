@@ -1,20 +1,14 @@
 # Security Policy
 
 ## Supported Versions
-
-Currently, the following versions of the Stellar Address Kit are supported with security updates:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| v1.0.1  | :white_check_mark: |
+We currently support and provide security updates for:
+- **v1.0.1** (Latest stable)
 
 ## Reporting a Vulnerability
+If you discover a security vulnerability, please help us keep the Stellar ecosystem safe:
 
-We take the security of this project seriously. If you believe you have found a security vulnerability, please report it to us as follows:
+1. **Private Reporting**: Do NOT open a public issue.
+2. **Email**: Send details to **lewechigodsfavour@gmail.com**.
+3. **Response**: We will acknowledge your report within 48 hours and coordinate a fix.
 
-1.  **Do not** open a public GitHub issue.
-2.  Send an email to lewechigodsfavour@gmail.com with a detailed description of the vulnerability and steps to reproduce it.
-3.  We will acknowledge your report within 48 hours and provide a timeline for a fix.
-4.  Once the fix is ready and verified, we will release a new version and credit you for the discovery (if desired).
-
-Please use a descriptive subject line in your email (e.g., "Security Vulnerability Report: [Brief Description]").
+Thank you for helping us maintain a secure library.
