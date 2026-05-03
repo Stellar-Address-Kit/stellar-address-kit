@@ -21,25 +21,26 @@ For full technical specifications, architecture deep-dives, and API references, 
 
 ## Packages
 
-| Platform | Package | Install |
-|---|---|---|
-| **TypeScript** | `stellar-address-kit` | `npm install stellar-address-kit` |
-| **Go** | `core-go` | `go get github.com/Boxkit-Labs/stellar-address-kit/packages/core-go` |
-| **Dart / Flutter** | `stellar_address_kit` | `dart pub add stellar_address_kit` |
+| Platform           | Package               | Install                                                              |
+| ------------------ | --------------------- | -------------------------------------------------------------------- |
+| **TypeScript**     | `stellar-address-kit` | `npm install stellar-address-kit`                                    |
+| **Go**             | `core-go`             | `go get github.com/Boxkit-Labs/stellar-address-kit/packages/core-go` |
+| **Dart / Flutter** | `stellar_address_kit` | `dart pub add stellar_address_kit`                                   |
 
 ## Quick Example
 
 Extract canonical routing information from any address type (G, M, or C) with zero-throw safety.
 
 ```typescript
-import { extractRouting } from 'stellar-address-kit';
+import { extractRouting } from "stellar-address-kit";
 
 // Handles M-addresses, G-addresses with memos, and C-addresses
 const result = extractRouting({
-  address: "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHBAAAAAAAAAAAAABQD"
+  address:
+    "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHBAAAAAAAAAAAAABQD",
 });
 
-console.log(result.address);   // "GA7Q..."
+console.log(result.address); // "GA7Q..."
 console.log(result.routingId); // "123"
 ```
 
@@ -52,7 +53,7 @@ console.log(result.routingId); // "123"
 
 ## Maintainers
 
-- **Emrys02** - [GitHub](https://github.com/Emrys02)
+- **codeZeus** - [GitHub](https://github.com/codeZe-us)
 
 ## License
 
