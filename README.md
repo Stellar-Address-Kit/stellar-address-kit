@@ -12,12 +12,12 @@
 
 ## Documentation
 
-For full technical specifications, architecture deep-dives, and API references, visit our [Live Documentation](https://stellar-address-kit.mintlify.app).
+For full technical specifications, architecture deep-dives, and API references, visit our [Live Documentation](https://stellaraddresskit.mintlify.app/docs/introduction).
 
-- **[Quickstart](https://stellar-address-kit.mintlify.app/docs/quickstart)**: Get running in under 60 seconds.
-- **[Routing Logic](https://stellar-address-kit.mintlify.app/docs/concepts/routing-logic)**: Complete reference of all routing scenarios.
-- **[Common Mistakes](https://stellar-address-kit.mintlify.app/docs/common-mistakes)**: Avoid the 6 most common integration pitfalls.
-- **[Language Guides](https://stellar-address-kit.mintlify.app/docs/guides/go-deposit-routing)**: Specialized guides for Go, TypeScript, and Flutter.
+- **[Quickstart](https://stellaraddresskit.mintlify.app/docs/quickstart)**: Get running in under 60 seconds.
+- **[Routing Logic](https://stellaraddresskit.mintlify.app/docs/concepts/routing-logic)**: Complete reference of all routing scenarios.
+- **[Common Mistakes](https://stellaraddresskit.mintlify.app/docs/common-mistakes)**: Avoid the 6 most common integration pitfalls.
+- **[Language Guides](https://stellaraddresskit.mintlify.app/docs/guides/go-deposit-routing)**: Specialized guides for Go, TypeScript, and Flutter.
 
 ## Packages
 
