@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'safe_bloc.dart';
-import 'analyze/presentation/bloc/analyze_bloc.dart';
+import 'package:stellar_address_kit_demo/features/safe_bloc.dart';
+import 'package:stellar_address_kit_demo/features/analyze/presentation/bloc/analyze_bloc.dart';
 
 class SafePanel extends StatelessWidget {
   const SafePanel({super.key});
@@ -55,12 +55,7 @@ class SafePanel extends StatelessWidget {
                   },
                 );
               } else if (safeState is SafeError) {
-                return Center(
-                  child: Text(
-                    safeState.error,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                );
+                return Center(child: Text(safeState.error, style: const TextStyle(color: Colors.red)));
               }
               return const Center(child: Text('Waiting for input...'));
             },
@@ -81,13 +76,6 @@ class SafePanel extends StatelessWidget {
           color: isCorrupted ? Colors.orange : Colors.green.withOpacity(0.3),
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,12 +85,7 @@ class SafePanel extends StatelessWidget {
             children: [
               const Text(
                 'EXTRACTED ID',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                  letterSpacing: 1.2,
-                ),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -112,11 +95,7 @@ class SafePanel extends StatelessWidget {
                 ),
                 child: const Text(
                   'CORRECT',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -155,11 +134,7 @@ class SafePanel extends StatelessWidget {
               children: [
                 const Text(
                   'PRECISION LOSS DETECTED',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Text(

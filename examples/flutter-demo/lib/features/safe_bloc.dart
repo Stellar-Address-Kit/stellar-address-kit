@@ -8,10 +8,9 @@ abstract class SafeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AddressChanged extends SafeEvent {
+class SafeAddressChanged extends SafeEvent {
   final String address;
-  const AddressChanged(this.address);
-
+  const SafeAddressChanged(this.address);
   @override
   List<Object?> get props => [address];
 }
@@ -27,7 +26,6 @@ class SafeInitial extends SafeState {}
 class SafeDecoded extends SafeState {
   final BigInt id;
   const SafeDecoded(this.id);
-
   @override
   List<Object?> get props => [id];
 }
@@ -35,17 +33,16 @@ class SafeDecoded extends SafeState {
 class SafeError extends SafeState {
   final String error;
   const SafeError(this.error);
-
   @override
   List<Object?> get props => [error];
 }
 
 class SafeBloc extends Bloc<SafeEvent, SafeState> {
   SafeBloc() : super(SafeInitial()) {
-    on<AddressChanged>(_onAddressChanged);
+    on<SafeAddressChanged>(_onAddressChanged);
   }
 
-  void _onAddressChanged(AddressChanged event, Emitter<SafeState> emit) {
+  void _onAddressChanged(SafeAddressChanged event, Emitter<SafeState> emit) {
     if (event.address.isEmpty) {
       emit(SafeInitial());
       return;
