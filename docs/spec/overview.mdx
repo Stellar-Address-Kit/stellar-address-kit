@@ -1,0 +1,20 @@
+---
+title: "Spec Overview"
+description: "Why the spec is the most important part of the project."
+icon: "microscope"
+---
+
+Stellar Address Kit is a **spec-first** project. This means that the shared `vectors.json` file is the ultimate source of truth for how all packages must behave.
+
+## What is vectors.json?
+
+A collection of 100+ test cases that cover every possible combination of:
+- G, M, and C addresses.
+- Valid and invalid checksums.
+- All memo types (ID, TEXT, HASH, RETURN).
+- Numeric and non-numeric text values.
+- Edge cases like `uint64` max value and JavaScript precision "canaries".
+
+## Shared Versioning
+
+The `spec_version` field in `vectors.json` governs the versioning of all three implementation packages. If the spec version jumps to `2.0.0`, all packages must jump to `2.0.0` to maintain compliance.

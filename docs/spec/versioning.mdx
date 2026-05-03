@@ -1,0 +1,16 @@
+---
+title: "Spec Versioning"
+description: "How we manage changes to the routing logic."
+---
+
+The `spec_version` field in `vectors.json` follows Semantic Versioning (SemVer) rules.
+
+## Versioning Rules
+
+- **Patch (1.0.x)**: Added non-breaking test vectors or updated documentation.
+- **Minor (1.x.0)**: Added new features that are backward-compatible (e.g., a new warning code).
+- **Major (x.0.0)**: Breaking changes to the routing logic or output schema.
+
+<Info>
+  All implementation packages must release the same version number to guarantee cross-language compliance.
+</Info>

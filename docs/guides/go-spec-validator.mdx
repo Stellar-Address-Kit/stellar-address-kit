@@ -1,0 +1,23 @@
+---
+title: "Go: Spec Validator"
+description: "Verifying your implementation against the shared test vectors."
+---
+
+The Go package includes a built-in validator to ensure it remains compliant with the `vectors.json` spec.
+
+## Running the Validator
+
+You can run the validator against any compatible Go implementation (including your own wrappers):
+
+```go
+import "github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/validator"
+
+func TestCompliance(t *testing.T) {
+    err := validator.Run(addresskit.ExtractRouting)
+    if err != nil {
+        t.Errorf("Spec validation failed: %v", err)
+    }
+}
+```
+
+This will run over 100+ test cases, including edge cases like `uint64` overflow and tampered checksums.

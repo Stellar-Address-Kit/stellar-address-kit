@@ -1,0 +1,36 @@
+---
+title: "Go: Deposit Routing Service"
+description: "Integrating Stellar Address Kit into your Go backend."
+---
+
+When building a deposit service in Go, you need to reconcile incoming payments with your internal user accounts.
+
+## Basic Integration
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/addresskit"
+)
+
+func handleIncomingPayment(dest string, memoType string, memoValue string) {
+    result := addresskit.ExtractRouting(addresskit.RoutingInput{
+        Address:  dest,
+        MemoType: memoType,
+        MemoValue: memoValue,
+    })
+
+    if result.DestinationError != "" {
+        fmt.Printf("Rejecting payment: %s\n", result.DestinationError)
+        return
+    }
+
+    // Check internal database for user with ID: result.RoutingId
+    // Base G-address of your pooled account: result.Address
+}
+```
+
+## Performance Note
+The Go implementation is optimized for high-throughput environments and performs zero heap allocations in the hot path where possible.

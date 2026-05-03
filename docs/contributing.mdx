@@ -1,0 +1,30 @@
+---
+title: "Contributing"
+description: "How to contribute to the Stellar Address Kit."
+icon: "people-group"
+---
+
+We welcome contributions! As a multi-language project, there are several ways to get involved.
+
+## Development Workflow
+
+<Steps>
+  <Step title="Adding Vectors">
+    Add new test cases to `spec/vectors.json`.
+  </Step>
+  <Step title="Running the Full Suite">
+    Verify all implementations:
+    - **TypeScript**: `pnpm test`
+    - **Go**: `go test ./...`
+    - **Dart**: `dart test`
+    - **Go Fuzzing**: `go test -fuzz=FuzzExtractRouting`
+  </Step>
+  <Step title="Changeset Workflow">
+    We use `changesets` for versioning. Run `pnpm changeset` to describe your change before opening a PR.
+  </Step>
+</Steps>
+
+## PR Requirements
+- Must pass all spec vectors in all three languages.
+- Must include a changeset.
+- Must follow the "never throw" design principle.

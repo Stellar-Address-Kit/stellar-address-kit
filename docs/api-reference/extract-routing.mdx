@@ -1,0 +1,39 @@
+---
+title: "extractRouting"
+description: "The primary API for deposit routing."
+---
+
+`extractRouting` is the core function of the library. It reconciles an address and memo into a canonical routing result.
+
+## Function Signatures
+
+<CodeGroup>
+```typescript TypeScript
+function extractRouting(input: RoutingInput): RoutingResult
+```
+
+```go Go
+func ExtractRouting(input RoutingInput) RoutingResult
+```
+
+```dart Dart
+RoutingResult extractRouting(RoutingInput input)
+```
+</CodeGroup>
+
+## Input: `RoutingInput`
+
+| Field | Type | Description |
+|---|---|---|
+| `address` | `string` | The destination address (G, M, or C). |
+| `memoType` | `string` | (Optional) `ID`, `TEXT`, `HASH`, or `RETURN`. |
+| `memoValue` | `string` | (Optional) The raw memo value. |
+
+## Output: `RoutingResult`
+
+| Field | Type | Description |
+|---|---|---|
+| `address` | `string` | The canonical base G-address. |
+| `routingId` | `string` | The extracted 64-bit ID (or empty string). |
+| `warnings` | `Warning[]` | List of warnings encountered. |
+| `destinationError` | `string` | Error code if the destination is invalid. |

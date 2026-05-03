@@ -1,0 +1,39 @@
+---
+title: "Introduction"
+description: "A multi-language deposit routing library for Stellar."
+icon: "hand-wave"
+---
+
+**Stellar Address Kit** is a specialized library designed to solve the complexity of deposit routing on the Stellar network. It provides a unified way to handle G-addresses (classic), M-addresses (muxed), and C-addresses (contracts) across multiple programming languages.
+
+## What it Does
+
+- **Unified Routing**: Extracts a canonical `address` and `routingId` (memo) from any input.
+- **Safety First**: Implements a strict warning system to catch common integration pitfalls (like potential 64-bit integer precision loss in JS).
+- **Cross-Language Compliance**: Every implementation (TypeScript, Go, Dart) is verified against the same set of test vectors.
+
+## What it does NOT do
+
+<Info>
+  Understanding the boundaries of this library is key to a successful integration.
+</Info>
+
+- **Not a Federation Service**: It does not resolve `user*domain.com` addresses.
+- **Not a full Stellar SDK**: It does not handle transaction signing, XDR parsing, or horizon communication.
+- **Not a Muxed Account Resolver**: It does not look up internal mapping for M-addresses; it performs purely mathematical/encoding-based extraction.
+
+## Project Status
+
+All three core packages are production-ready and live at **v1.0.1**.
+
+<CardGroup cols={3}>
+  <Card title="TypeScript" icon="npm" href="https://www.npmjs.com/package/stellar-address-kit">
+    NPM package for Web and Node.js.
+  </Card>
+  <Card title="Go" icon="code" href="https://pkg.go.dev/github.com/Boxkit-Labs/stellar-address-kit/packages/core-go">
+    High-performance Go implementation.
+  </Card>
+  <Card title="Dart / Flutter" icon="dart" href="https://pub.dev/packages/stellar_address_kit">
+    Native Dart package for cross-platform apps.
+  </Card>
+</CardGroup>

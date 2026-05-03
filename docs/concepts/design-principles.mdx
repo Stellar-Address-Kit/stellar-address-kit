@@ -1,0 +1,25 @@
+---
+title: "Design Principles"
+description: "The philosophy behind the library."
+icon: "compass"
+---
+
+Stellar Address Kit is built on four core principles to ensure it is the most reliable tool for deposit routing.
+
+### 1. Never Throw
+The library functions are "pure" in the sense that they should never throw an exception. Errors are returned as values within the result object. This makes it easier to use in high-availability backend services.
+
+### 2. Errors are Values
+By returning errors and warnings as structured data rather than throwing, we force the developer to consider the edge cases of Stellar address handling.
+
+### 3. Canonical Output
+The library always returns data in a standardized format:
+- **Addresses**: Always uppercase (G..., M...).
+- **Routing IDs**: Always a string representation of a `uint64`, with no leading zeros.
+
+### 4. The Spec is the Product
+The heart of the project is the `vectors.json` specification. The TypeScript, Go, and Dart packages are simply implementations of that spec. If a new edge case is found, it is added to the spec first, and then all implementations are updated.
+
+<Info>
+  This approach ensures that a wallet built in Flutter and a backend built in Go will always agree on where a deposit should go.
+</Info>

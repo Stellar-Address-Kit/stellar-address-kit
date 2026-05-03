@@ -1,0 +1,27 @@
+---
+title: "parse"
+description: "High-level address parsing."
+---
+
+The `parse` function identifies the type of address and extracts any embedded data.
+
+## Usage
+
+<CodeGroup>
+```typescript TypeScript
+import { parse } from 'stellar-address-kit';
+
+const result = parse("MA7Q...QD");
+// { type: 'MUXED', baseAddress: 'GA7Q...', id: '123' }
+```
+
+```dart Dart
+// Dart includes a parseOrThrow variant for convenience
+final result = parseOrThrow("MA7Q...QD");
+```
+</CodeGroup>
+
+## Supported Types
+- `CLASSIC` (G...)
+- `MUXED` (M...)
+- `CONTRACT` (C...)

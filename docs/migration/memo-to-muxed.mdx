@@ -1,0 +1,24 @@
+---
+title: "Memo to Muxed Migration"
+description: "Moving from G-addresses + Memos to M-addresses."
+icon: "shuffle"
+---
+
+Migrating to multiplexed addresses (M-addresses) improves the user experience and reduces routing errors.
+
+## Migration Steps
+
+<Steps>
+  <Step title="Update your internal database">
+    Ensure your `user_id` field can handle 64-bit unsigned integers stored as strings.
+  </Step>
+  <Step title="Generate M-addresses">
+    Use a Stellar SDK to generate an M-address for each user by combining your pooled G-address with the user's ID.
+  </Step>
+  <Step title="Display the M-address">
+    Update your UI to show the M-address. You can stop showing a separate "Memo" field for users who use the M-address.
+  </Step>
+  <Step title="Use Stellar Address Kit for Routing">
+    Replace your custom parsing logic with `extractRouting`. This ensures that even if a user sends to your G-address with an ID memo, the routing will still work correctly.
+  </Step>
+</Steps>

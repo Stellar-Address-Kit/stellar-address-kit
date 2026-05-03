@@ -1,0 +1,58 @@
+---
+title: "Routing Logic"
+description: "How addresses and memos are reconciled."
+icon: "diagram-project"
+---
+
+The library follows a strict set of rules to determine the `address` and `routingId` for any given input.
+
+## Routing Scenarios
+
+<AccordionGroup>
+  <Accordion title="M-Address (No Memo)">
+    Input: `MA7Q...QD`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `123`
+  </Accordion>
+  <Accordion title="M-Address + External Memo">
+    Input: `MA7Q...QD` + `MEMO_ID: 999`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `123`
+    - `warning`: `REDUNDANT_MEMO` (The M-address ID takes priority).
+  </Accordion>
+  <Accordion title="G-Address + MEMO_ID">
+    Input: `GA7Q...HB` + `MEMO_ID: 123`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `123`
+  </Accordion>
+  <Accordion title="G-Address + Numeric MEMO_TEXT">
+    Input: `GA7Q...HB` + `MEMO_TEXT: "123"`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `123`
+    - `warning`: `MEMO_TYPE_MISMATCH` (Numeric text memos are often sent by mistake instead of ID memos).
+  </Accordion>
+  <Accordion title="G-Address + Non-Numeric MEMO_TEXT">
+    Input: `GA7Q...HB` + `MEMO_TEXT: "abc"`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `""`
+    - `warning`: `NON_ROUTABLE_MEMO` (Cannot extract a numeric ID from text).
+  </Accordion>
+  <Accordion title="G-Address + MEMO_HASH/RETURN">
+    Input: `GA7Q...HB` + `MEMO_HASH: "..."`
+    Output:
+    - `address`: `GA7Q...HB`
+    - `routingId`: `""`
+    - `warning`: `NON_ROUTABLE_MEMO`.
+  </Accordion>
+  <Accordion title="C-Address">
+    Input: `C...`
+    Output:
+    - `address`: `""`
+    - `destinationError`: `INVALID_DESTINATION`.
+  </Accordion>
+</AccordionGroup>

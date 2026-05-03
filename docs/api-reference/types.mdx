@@ -1,0 +1,40 @@
+---
+title: "Types"
+description: "Data structures used throughout the kit."
+---
+
+## RoutingResult
+
+The object returned by `extractRouting`.
+
+```typescript
+interface RoutingResult {
+  address: string;          // Canonical G-address
+  routingId: string;        // 64-bit ID string
+  warnings: Warning[];      // List of non-fatal issues
+  destinationError: string; // Error code for fatal issues
+}
+```
+
+## Warning
+
+A discriminated union (in TS) or object (Go/Dart) describing a non-fatal issue.
+
+```typescript
+type Warning = {
+  code: string;             // WarningCode
+  severity: 'INFO' | 'WARN' | 'ERROR';
+  message: string;
+}
+```
+
+## ErrorCode (Fatal)
+- `INVALID_CHECKSUM`
+- `INVALID_DESTINATION` (e.g. C-address)
+- `UNSUPPORTED_MEMO_TYPE`
+
+## WarningCode (Non-fatal)
+- `REDUNDANT_MEMO`
+- `MEMO_TYPE_MISMATCH`
+- `NON_ROUTABLE_MEMO`
+- `JS_PRECISION_LOSS`

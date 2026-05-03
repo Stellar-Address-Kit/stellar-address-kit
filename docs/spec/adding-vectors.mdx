@@ -1,0 +1,24 @@
+---
+title: "Adding Test Vectors"
+description: "How to contribute new edge cases to the spec."
+---
+
+If you find a routing edge case that isn't covered, follow these steps to add it to the spec.
+
+<Steps>
+  <Step title="Update vectors.json">
+    Add the new test case to `spec/vectors.json`. Ensure you follow the existing schema for inputs and expected outputs.
+  </Step>
+  <Step title="Run validate.js">
+    Use the provided script to ensure your new vector doesn't break the JSON schema.
+    ```bash
+    node scripts/validate.js
+    ```
+  </Step>
+  <Step title="Update Implementations">
+    Update the TS, Go, and Dart packages to pass the new test case.
+  </Step>
+  <Step title="Open a PR">
+    Submit your changes with a `changeset` describing the new edge case.
+  </Step>
+</Steps>

@@ -1,0 +1,39 @@
+---
+title: "Installation"
+description: "Install Stellar Address Kit in your language of choice."
+icon: "download"
+---
+
+## Language Support
+
+Stellar Address Kit is available for the three most common environments in the Stellar ecosystem.
+
+<Tabs>
+  <Tab title="TypeScript">
+    ```bash
+    npm install stellar-address-kit
+    ```
+    
+    <Note>
+      Works alongside `stellar-sdk` or `stellar-base`. It handles the extraction logic that the base SDKs leave to the developer.
+    </Note>
+  </Tab>
+  <Tab title="Go">
+    ```bash
+    go get github.com/Boxkit-Labs/stellar-address-kit/packages/core-go
+    ```
+
+    <Note>
+      Designed to be embedded in high-throughput deposit routing services. Fully compatible with `github.com/stellar/go`.
+    </Note>
+  </Tab>
+  <Tab title="Dart">
+    ```bash
+    dart pub add stellar_address_kit
+    ```
+
+    <Note>
+      Optimized for Flutter apps. Includes specialized handling for BigInt on Flutter Web to avoid precision loss.
+    </Note>
+  </Tab>
+</Tabs>

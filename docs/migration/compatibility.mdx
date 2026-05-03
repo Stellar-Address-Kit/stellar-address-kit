@@ -1,0 +1,25 @@
+---
+title: "Compatibility"
+description: "How the kit works with other ecosystem tools."
+icon: "handshake"
+---
+
+Stellar Address Kit is designed to be a thin layer on top of the standard Stellar SDKs.
+
+## SDK Compatibility
+
+| SDK | Support | Note |
+|---|---|---|
+| **Stellar SDK (JS/TS)** | Full | Use for network communication, use Kit for routing. |
+| **Go Stellar SDK** | Full | Seamlessly integrates with `github.com/stellar/go`. |
+| **Dart Stellar SDK** | Full | Handles the `BigInt` edge cases for Flutter Web. |
+
+## Network Compatibility
+
+The kit is network-agnostic. It works with:
+- **Mainnet**
+- **Testnet**
+- **Futurenet**
+- **Private Networks**
+
+Since it performs purely mathematical extraction (multiplexed encoding/decoding), it does not need to communicate with a Horizon server.

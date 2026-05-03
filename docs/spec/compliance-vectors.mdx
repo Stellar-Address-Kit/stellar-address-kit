@@ -1,0 +1,17 @@
+---
+title: "Compliance Vectors"
+description: "The 8 non-negotiable baseline test cases."
+---
+
+To be considered a compliant implementation of the Stellar Address Kit, a package must pass these 8 critical "canary" vectors.
+
+| Case | Why it matters |
+|---|---|
+| **2^53 + 1 Canary** | Verifies that the implementation does not lose precision on large IDs. |
+| **uint64 Max** | Ensures `18,446,744,073,709,551,615` is handled as a string. |
+| **uint64 Overflow** | Confirms that IDs larger than 64-bit trigger an error. |
+| **Lowercase Input** | Verifies that addresses are normalized to uppercase in the output. |
+| **NOTANADDRESS** | Ensures malformed strings return `INVALID_CHECKSUM`. |
+| **Tampered Checksum** | Confirms that modifying one character in an address triggers an error. |
+| **C-Address Destination** | Ensures contracts are flagged as `INVALID_DESTINATION` for routing. |
+| **Invariant Check** | Verifies that if an error is present, all other result fields are empty. |

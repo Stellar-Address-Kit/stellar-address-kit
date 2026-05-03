@@ -1,0 +1,36 @@
+---
+title: "Address Types"
+description: "Understanding G, M, and C addresses."
+icon: "mailbox"
+---
+
+Stellar uses different address formats for different purposes. This library ensures you handle them correctly and safely.
+
+## Support Table
+
+| Type | Prefix | Description | Usage |
+|---|---|---|---|
+| **G Address** | `G...` | Ed25519 Public Key (Classic) | Primary account identifier. |
+| **M Address** | `M...` | Multiplexed Address (SEP-23) | G-address + 64-bit Memo ID. |
+| **C Address** | `C...` | Contract ID (Soroban) | Identifier for smart contracts. |
+
+## M-Addresses (Muxed)
+
+Multiplexed addresses are the preferred way to handle deposits for pooled accounts. They encode both the destination and the user's ID into a single string, removing the need for a separate memo field.
+
+<Info>
+  The library automatically expands M-addresses into their base G-address and routing ID.
+</Info>
+
+## C-Addresses (Contracts)
+
+<Warning>
+  **C-addresses are NOT valid for classic deposit routing.** Contracts do not have a "memo" field in the same way accounts do.
+</Warning>
+
+If a user provides a C-address in a classic deposit flow, the library returns an `INVALID_DESTINATION` error. Contracts should only be used as destinations for Soroban-specific integrations.
+
+## Further Reading
+
+- [Stellar Pooled Accounts](https://developers.stellar.org/docs/glossary/pooled-accounts/)
+- [SEP-23: Muxed Accounts](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0023.md)

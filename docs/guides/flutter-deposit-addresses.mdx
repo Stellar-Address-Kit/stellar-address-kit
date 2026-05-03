@@ -1,0 +1,22 @@
+---
+title: "Flutter: Deposit Addresses"
+description: "Displaying G and M addresses in your UI."
+---
+
+When displaying a deposit address to a user in Flutter, you should prioritize M-addresses for a better user experience.
+
+## UI Example
+
+```dart
+final routing = extractRouting(RoutingInput(
+  address: "G...",
+  memoId: "123",
+));
+
+// Display the "Friendly" address if available
+Text(routing.address); // The G-address
+Text(routing.routingId); // The Memo ID
+```
+
+## Copy to Clipboard
+Always provide a copy button for both the address and the memo. If you are using an M-address, the user only needs to copy one string.

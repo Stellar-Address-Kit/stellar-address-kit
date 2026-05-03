@@ -1,0 +1,48 @@
+---
+title: "Quickstart"
+description: "Extract routing information in three languages."
+icon: "bolt"
+---
+
+The core function of this library is `extractRouting`. It takes an address and an optional memo and returns a canonical `address` and `routingId`.
+
+## Example: M-Address
+
+An M-address contains both the base G-address and a multiplexed ID. The library extracts both automatically.
+
+<CodeGroup>
+
+```typescript TypeScript
+import { extractRouting } from 'stellar-address-kit';
+
+const result = extractRouting({
+  address: "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHBAAAAAAAAAAAAABQD"
+});
+
+console.log(result.address);   // "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHB"
+console.log(result.routingId); // "123"
+```
+
+```go Go
+import "github.com/Boxkit-Labs/stellar-address-kit/packages/core-go/addresskit"
+
+result := addresskit.ExtractRouting(addresskit.RoutingInput{
+    Address: "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHBAAAAAAAAAAAAABQD",
+})
+
+fmt.Println(result.Address)   // "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHB"
+fmt.Println(result.RoutingId) // "123"
+```
+
+```dart Dart
+import 'package:stellar_address_kit/stellar_address_kit.dart';
+
+final result = extractRouting(RoutingInput(
+  address: "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHBAAAAAAAAAAAAABQD",
+));
+
+print(result.address);   // "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLT7AV7Y6S33Z6S3CHB"
+print(result.routingId); // "123"
+```
+
+</CodeGroup>

@@ -1,0 +1,115 @@
+{
+  "name": "Stellar Address Kit",
+  "logo": {
+    "light": "https://img.shields.io/badge/Stellar-Address_Kit-3E1BDB?style=for-the-badge",
+    "dark": "https://img.shields.io/badge/Stellar-Address_Kit-A78BFA?style=for-the-badge"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#3E1BDB",
+    "light": "#A78BFA",
+    "dark": "#1E0E6B"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/Boxkit-Labs/stellar-address-kit"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "NPM",
+      "icon": "npm",
+      "url": "https://www.npmjs.com/package/stellar-address-kit"
+    },
+    {
+      "name": "Pub.dev",
+      "icon": "dart",
+      "url": "https://pub.dev/packages/stellar_address_kit"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "docs/introduction",
+        "docs/installation",
+        "docs/quickstart"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "docs/concepts/address-types",
+        "docs/concepts/routing-logic",
+        "docs/concepts/warning-system",
+        "docs/concepts/design-principles"
+      ]
+    },
+    {
+      "group": "Language Guides",
+      "pages": [
+        "docs/guides/go-deposit-routing",
+        "docs/guides/go-spec-validator",
+        "docs/guides/ts-pooled-accounts",
+        "docs/guides/ts-reconciling-deposits",
+        "docs/guides/flutter-deposit-addresses",
+        "docs/guides/flutter-incoming-payments",
+        "docs/guides/flutter-web-bigint"
+      ]
+    },
+    {
+      "group": "Migration",
+      "pages": [
+        "docs/migration/memo-to-muxed",
+        "docs/migration/compatibility"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "docs/api-reference/extract-routing",
+        "docs/api-reference/parse",
+        "docs/api-reference/types"
+      ]
+    },
+    {
+      "group": "Spec",
+      "pages": [
+        "docs/spec/overview",
+        "docs/spec/compliance-vectors",
+        "docs/spec/adding-vectors",
+        "docs/spec/versioning"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "docs/common-mistakes",
+        "docs/glossary",
+        "docs/contributing"
+      ]
+    }
+  ],
+  "footerLinks": [
+    {
+      "name": "MIT License",
+      "url": "https://github.com/Boxkit-Labs/stellar-address-kit/blob/main/LICENSE"
+    },
+    {
+      "name": "NPM",
+      "url": "https://www.npmjs.com/package/stellar-address-kit"
+    },
+    {
+      "name": "Pub.dev",
+      "url": "https://pub.dev/packages/stellar_address_kit"
+    },
+    {
+      "name": "Go Reference",
+      "url": "https://pkg.go.dev/github.com/Boxkit-Labs/stellar-address-kit/packages/core-go"
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/Boxkit-Labs/stellar-address-kit"
+  }
+}

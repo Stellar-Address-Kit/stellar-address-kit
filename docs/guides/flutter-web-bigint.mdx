@@ -1,0 +1,16 @@
+---
+title: "Flutter Web: BigInt"
+description: "Avoiding precision loss in the browser."
+---
+
+Flutter Web compiles to JavaScript, which means it shares the same 64-bit float limitations as any other JS application.
+
+## The Problem
+If you parse a large Memo ID (near `18,446,744,073,709,551,615`) as an `int` in Dart when running on Web, you will lose precision.
+
+## The Solution
+The Dart package uses `BigInt` internally and returns the `routingId` as a `String`.
+
+<Warning>
+  Never convert the `routingId` to an `int` if your app targets Web. Always keep it as a `String` or a `BigInt`.
+</Warning>

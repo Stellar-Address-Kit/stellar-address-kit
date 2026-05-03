@@ -1,0 +1,34 @@
+---
+title: "Common Integration Mistakes"
+description: "Avoid these 6 pitfalls when implementing deposit routing."
+icon: "circle-xmark"
+---
+
+Even with a library, there are several ways to incorrectly handle Stellar deposits. We've compiled the 6 most common mistakes.
+
+<AccordionGroup>
+  <Accordion title="1. The C-Address StrKey Trap">
+    **The Mistake**: Assuming any valid StrKey is a routable destination.
+    **The Right Way**: C-addresses (Contracts) do not support memos. If you detect a C-address, flag it as `INVALID_DESTINATION` and do not attempt to credit a user account.
+  </Accordion>
+  <Accordion title="2. JavaScript Number Precision">
+    **The Mistake**: Converting the `routingId` string to a `number` in JS/TS.
+    **The Right Way**: IDs can be up to `uint64` max. JS numbers lose precision above `9007199254740991`. **Always** keep the ID as a string.
+  </Accordion>
+  <Accordion title="3. Numeric MEMO_TEXT Routing">
+    **The Mistake**: Ignoring `MEMO_TEXT` when it contains numbers.
+    **The Right Way**: Users often accidentally send their ID as text. The library will extract it but issue a `MEMO_TYPE_MISMATCH` warning. You should still credit the user but log a warning.
+  </Accordion>
+  <Accordion title="4. Ignoring Warning Severity">
+    **The Mistake**: Treating all warnings as fatal or ignoring all warnings.
+    **The Right Way**: Check the `severity`. `ERROR` warnings (like precision loss) should block the transaction, while `INFO` warnings are safe to ignore.
+  </Accordion>
+  <Accordion title="5. Non-Standard memoType Strings">
+    **The Mistake**: Passing custom strings like "id" or "text" instead of the standard "ID" or "TEXT".
+    **The Right Way**: Use the standard uppercase strings defined in the [API Reference](/api-reference/extract-routing).
+  </Accordion>
+  <Accordion title="6. MEMO_ID Validity">
+    **The Mistake**: Assuming any number is a valid ID.
+    **The Right Way**: The library verifies that IDs are within the 64-bit range. Any value above `18,446,744,073,709,551,615` will trigger a `MAX_UINT64_EXCEEDED` error.
+  </Accordion>
+</AccordionGroup>

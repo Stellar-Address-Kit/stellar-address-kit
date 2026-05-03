@@ -1,0 +1,22 @@
+---
+title: "Flutter: Incoming Payments"
+description: "Reacting to payments in your wallet app."
+---
+
+When your app detects an incoming payment (e.g., via Horizon stream), use the kit to identify the recipient ID.
+
+## Implementation
+
+```dart
+void onPaymentReceived(PaymentResponse payment) {
+  final result = extractRouting(RoutingInput(
+    address: payment.to,
+    memoType: payment.memoType,
+    memoValue: payment.memo,
+  ));
+
+  if (result.routingId == currentUser.id.toString()) {
+    // Show notification: "Payment received!"
+  }
+}
+```

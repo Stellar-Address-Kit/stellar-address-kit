@@ -1,0 +1,27 @@
+---
+title: "TS: Pooled Accounts"
+description: "Handling muxed deposits in TypeScript."
+---
+
+Pooled accounts are a common pattern for exchanges and fintech apps. This guide shows how to handle them safely in TypeScript.
+
+## The Problem
+JavaScript's `Number` type is a 64-bit float, which cannot safely represent all 64-bit integers (specifically those above 2^53 - 1).
+
+## The Solution
+Stellar Address Kit always returns the `routingId` as a **string** to avoid any precision loss.
+
+```typescript
+import { extractRouting } from 'stellar-address-kit';
+
+const result = extractRouting({
+  address: "MA7Q...QD"
+});
+
+// ALWAYS use the string value for DB lookups
+const userId = result.routingId; 
+
+if (result.warnings.some(w => w.code === 'JS_PRECISION_LOSS')) {
+  // This would trigger if you tried to pass a number that was too large
+}
+```

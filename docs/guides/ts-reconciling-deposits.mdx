@@ -1,0 +1,24 @@
+---
+title: "TS: Reconciling Deposits"
+description: "Handling missing or malformed memos."
+---
+
+Deposits with missing or malformed memos are the leading cause of support tickets for Stellar exchanges.
+
+## Reconciliation Flow
+
+```typescript
+const result = extractRouting(input);
+
+if (result.routingId === "") {
+  // Case A: No memo provided
+  // Case B: Memo was non-numeric text
+  // Action: Hold deposit for manual review
+} else {
+  // Case C: Valid ID found
+  // Action: Credit user account
+}
+```
+
+## Warning Handling
+Pay close attention to `NON_ROUTABLE_MEMO` warnings. This happens when a user sends a `MEMO_TEXT` that contains their name instead of their ID.

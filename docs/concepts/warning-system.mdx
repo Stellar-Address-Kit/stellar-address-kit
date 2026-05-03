@@ -1,0 +1,38 @@
+---
+title: "Warning System"
+description: "Differentiating between errors and warnings."
+icon: "triangle-exclamation"
+---
+
+Stellar Address Kit uses a two-layered messaging system to help you integrate safely without being overly restrictive.
+
+## Error vs Warning
+
+- **Error (`destinationError`)**: The destination is unusable (e.g., malformed checksum or C-address). No routing can be performed.
+- **Warning (`warnings`)**: The destination is technically valid, but there are issues the developer should know about (e.g., precision loss or redundant memos).
+
+## Severity Levels
+
+| Level | Meaning | Action |
+|---|---|---|
+| **INFO** | Informational change (e.g., input was lowercase). | Safe to ignore in production. |
+| **WARN** | Potential issue (e.g., Numeric MEMO_TEXT). | Log to your monitoring system. |
+| **ERROR** | Critical issue (e.g., M-address ID overflow). | Reject the transaction. |
+
+## The Warning Type (TypeScript)
+
+Warnings are returned as a discriminated union, allowing for type-safe handling of specialized metadata.
+
+```typescript
+type Warning = 
+  | { code: 'JS_PRECISION_LOSS'; severity: 'ERROR'; message: string }
+  | { code: 'REDUNDANT_MEMO'; severity: 'INFO'; message: string }
+  | { code: 'MEMO_TYPE_MISMATCH'; severity: 'WARN'; message: string }
+  // ... and others
+```
+
+## The destinationError Invariant
+
+<Info>
+  **The Invariant**: If `destinationError` is present, all other fields (`address`, `routingId`, `warnings`) will be null, none, or empty.
+</Info>
